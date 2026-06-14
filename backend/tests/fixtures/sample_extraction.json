@@ -1,0 +1,31 @@
+{
+  "document_kind": "Saudi regulatory memo",
+  "language": "Arabic",
+  "summary": "A short handwritten regulatory note requiring human review before final archiving.",
+  "transcription": "بسم الله الرحمن الرحيم\nتعميم إداري بشأن مراجعة السجلات الورقية وتحويلها إلى نسخة رقمية قابلة للتدقيق.",
+  "fields": [
+    {
+      "label": "Document title",
+      "value": "تعميم إداري",
+      "field_type": "title",
+      "source": {
+        "page": 1,
+        "snippet": "تعميم إداري بشأن مراجعة السجلات"
+      },
+      "confidence": 0.86
+    },
+    {
+      "label": "Primary action",
+      "value": "تحويل السجلات الورقية إلى نسخة رقمية",
+      "field_type": "clause",
+      "source": {
+        "page": 1,
+        "snippet": "تحويلها إلى نسخة رقمية قابلة للتدقيق"
+      },
+      "confidence": 0.78
+    }
+  ],
+  "notes": [
+    "Handwriting confidence is moderate; operator should review before final export."
+  ]
+}

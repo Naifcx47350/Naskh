@@ -1,0 +1,124 @@
+# Backend Guide
+
+## Stack
+
+- **FastAPI** on **Uvicorn**
+- **OpenAI Python SDK** (Responses API + `.parse()` for Pydantic outputs)
+- **ChromaDB** for per-document vector index
+- **Pillow**, **pypdf**, **pdf2image** for document handling
+- **python-docx** for exports
+
+## File structure
+
+```
+backend/
+├── app/
+│   ├── main.py              # FastAPI app, CORS, router mount
+│   ├── api.py               # REST routes
+│   ├── config.py            # Settings from .env
+│   ├── schemas.py           # Pydantic models (shared contract)
+│   └── services/
+│       ├── documents.py     # Upload, preview, metadata, demo
+│       ├── ai.py            # OpenAI extraction + chat
+│       ├── rag.py           # Chunk, embed, retrieve
+│       └── exports.py       # DOCX + JSON writers
+├── tests/
+│   ├── conftest.py
+│   ├── test_document_pipeline.py
+│   └── fixtures/
+│       └── sample_extraction.json
+├── .env.example
+└── requirements.txt
+```
+
+Run from `backend/` directory so `data/` resolves correctly:
+
+```powershell
+cd backend
+uvicorn app.main:app --reload
+```
+
+## Configuration
+
+`app/config.py` loads from `backend/.env`:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | `None` | Required for live AI; optional for demo |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Vision + chat model |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | RAG embeddings |
+| `APP_NAME` | `Naskh` | Display name |
+
+Data directories are created automatically under `backend/data/`.
+
+## Service responsibilities
+
+### `documents.py`
+
+- Validates upload MIME types
+- Stores original file + writes JSON metadata (`document_id`, paths, timestamps)
+- Generates PNG previews:
+  - Images → normalize with Pillow
+  - PDF → `pdf2image` if Poppler available, else `pypdf` text + Pillow render
+- `create_demo_document()` — copies bundled sample into uploads
+- `load_sample_extraction()` — demo JSON for no-key mode
+
+### `ai.py`
+
+- `extract_document(image_urls)` — sends images + prompt to OpenAI, returns `DocumentExtraction`
+- `answer_question(question, excerpts)` — RAG-grounded `ChatAnswer`
+- Prompts emphasize human review, Arabic preservation, and honest confidence
+
+### `rag.py`
+
+- Chunks transcription + field text
+- Indexes into Chroma collection `doc_{document_id}`
+- `retrieve(question, k)` — embedding search for chat context
+
+### `exports.py`
+
+- `write_docx()` — structured report with fields and transcription
+- `write_json()` — serializes full `DocumentExtraction`
+
+## API layer (`api.py`)
+
+Central orchestration:
+
+1. Upload/demo → `store_upload` / `create_demo_document`
+2. Process → `AiService.extract_document` or sample fallback → `save_extraction` → optional `RagService.index_extraction`
+3. Chat → `RagService.retrieve` + `AiService.answer_question` or `_demo_chat_answer`
+4. Export → load extraction, write file, `FileResponse`
+
+## Demo fallback logic
+
+When `OPENAI_API_KEY` is missing:
+
+- **Process:** Uses `tests/fixtures/sample_extraction.json` and appends a note in `extraction.notes`
+- **Chat:** `_demo_chat_answer()` matches question keywords to extraction fields
+
+This keeps the frontend fully functional for UI demos and CI without secrets.
+
+## Tests
+
+```powershell
+cd backend
+python -m pytest tests -v
+```
+
+Tests use fixtures and temp directories; they do not call OpenAI.
+
+Adding integration tests with a real key should use env gating (`pytest -m integration`) to avoid CI cost.
+
+## Adding a new endpoint (pattern)
+
+1. Define request/response models in `schemas.py`
+2. Implement logic in appropriate `services/*.py`
+3. Add route in `api.py`
+4. Wire frontend `api()` call in `App.tsx`
+5. Add smoke test if behavior is non-trivial
+
+## Security reminders
+
+- Never expose `OPENAI_API_KEY` to the frontend
+- Validate upload types and size (extend as needed)
+- For any public deploy: add auth, rate limits, and virus scanning before production use

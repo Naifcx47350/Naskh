@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+openai
+pydantic-settings
+Pillow
+pypdf
+pdf2image
+python-docx
+chromadb
+arabic-reshaper
+python-bidi
+pytest
