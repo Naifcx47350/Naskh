@@ -1,5 +1,9 @@
+import json
+import logging
+import time
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from app.config import get_settings
 from app.schemas import ChatAnswer, ChatRequest, ChatResponse, ProcessResponse, SourceRegion, UploadResponse
@@ -16,6 +20,8 @@ from app.services.documents import (
 )
 from app.services.exports import write_docx, write_json
 from app.services.rag import RagService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -101,6 +107,51 @@ def chat(document_id: str, request: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return ChatResponse(document_id=document_id, answer=answer)
+
+
+def _sse(payload: dict) -> str:
+    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _clip_snippet(text: str, limit: int = 240) -> str:
+    text = text.strip()
+    return text if len(text) <= limit else text[:limit].rstrip() + "…"
+
+
+def _demo_token_stream(text: str):
+    words = text.split(" ")
+    for index, word in enumerate(words):
+        yield word if index == 0 else f" {word}"
+
+
+@router.post("/documents/{document_id}/chat/stream")
+def chat_stream(document_id: str, request: ChatRequest) -> StreamingResponse:
+    settings = get_settings()
+    try:
+        extraction = load_extraction(document_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Document extraction not found.") from exc
+
+    def event_stream():
+        try:
+            if settings.openai_api_key:
+                excerpts = RagService(settings).retrieve(document_id, request.question)
+                sources = [SourceRegion(page=1, snippet=_clip_snippet(text)) for text in excerpts]
+                for token in AiService(settings).stream_answer_question(request.question, excerpts):
+                    yield _sse({"type": "token", "value": token})
+            else:
+                answer = _demo_chat_answer(request.question, extraction)
+                sources = answer.source_snippets
+                for token in _demo_token_stream(answer.answer):
+                    yield _sse({"type": "token", "value": token})
+                    time.sleep(0.02)
+            yield _sse({"type": "sources", "value": [source.model_dump() for source in sources]})
+            yield _sse({"type": "done"})
+        except Exception:  # noqa: BLE001 - never leak internals to the client
+            logger.exception("Streaming chat failed for document %s", document_id)
+            yield _sse({"type": "error", "value": "The assistant could not complete the answer."})
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.get("/documents/{document_id}/export/docx")
