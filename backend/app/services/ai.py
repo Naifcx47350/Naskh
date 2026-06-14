@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from openai import OpenAI
 
 from app.config import Settings
@@ -15,6 +17,12 @@ If a region is unclear, include it in notes and lower the confidence rather than
 CHAT_PROMPT = """Answer questions only from the provided document excerpts.
 
 Return a concise answer and cite exact source snippets that support it. If the excerpts do not contain the answer, say that the document does not provide enough evidence.
+"""
+
+
+CHAT_STREAM_PROMPT = """Answer the question using only the provided document excerpts.
+
+Reply in concise plain prose (no JSON, no markdown headings). If the excerpts do not contain the answer, say the document does not provide enough evidence.
 """
 
 
@@ -66,6 +74,30 @@ class AiService:
             raise RuntimeError("The model did not return a structured answer.")
 
         return parsed
+
+    def stream_answer_question(self, question: str, excerpts: list[str]) -> Iterator[str]:
+        """Yield answer text chunks as they are generated.
+
+        Citations are not produced here; the caller attaches the retrieved
+        excerpts as sources once the stream completes. This keeps the streamed
+        payload as readable prose rather than partial structured JSON.
+        """
+        context = "\n\n---\n\n".join(excerpts)
+        with self.client.responses.stream(
+            model=self.settings.openai_model,
+            input=[
+                {"role": "system", "content": CHAT_STREAM_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"Question: {question}\n\nDocument excerpts:\n{context}",
+                },
+            ],
+        ) as stream:
+            for event in stream:
+                if getattr(event, "type", None) == "response.output_text.delta":
+                    delta = getattr(event, "delta", "")
+                    if delta:
+                        yield delta
 
 
 def _extract_refusal(response: object) -> str | None:
