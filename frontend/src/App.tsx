@@ -196,7 +196,7 @@ export default function App() {
                 {activeSnippet && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute inset-x-6 top-6 rounded-2xl border border-copper bg-white/95 p-4 text-sm shadow-glow">
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-copper">Cited passage</p>
-                    <p dir="auto">{activeSnippet}</p>
+                    <p>{activeSnippet}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -217,8 +217,8 @@ export default function App() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-copper">Digitized output</p>
-                    <h2 className="mt-1 text-2xl font-bold" dir="auto">{extraction.document_kind}</h2>
-                    <p className="mt-1 text-sm text-slate-600" dir="auto">{extraction.summary}</p>
+                    <h2 className="mt-1 text-2xl font-bold">{extraction.document_kind}</h2>
+                    <p className="mt-1 text-sm text-slate-600">{extraction.summary}</p>
                   </div>
                   {upload && (
                     <div className="flex gap-2">
@@ -240,8 +240,8 @@ export default function App() {
                       onMouseLeave={() => setActiveSnippet(null)}
                     >
                       <p className="text-xs uppercase tracking-wide text-slate-400">{field.field_type}</p>
-                      <p className="mt-1 font-semibold" dir="auto">{field.label}</p>
-                      <p className="mt-2 text-sm text-slate-700" dir="auto">{field.value}</p>
+                      <p className="mt-1 font-semibold">{field.label}</p>
+                      <p className="mt-2 text-sm text-slate-700">{field.value}</p>
                       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-200">
                         <div className="h-full rounded-full bg-copper" style={{ width: `${Math.round(field.confidence * 100)}%` }} />
                       </div>
@@ -263,7 +263,7 @@ export default function App() {
                   <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
                     <p className="font-semibold">Human review notes</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5">
-                      {extraction.notes.map((note, i) => <li key={i} dir="auto">{note}</li>)}
+                      {extraction.notes.map((note, i) => <li key={i}>{note}</li>)}
                     </ul>
                   </div>
                 )}
@@ -358,23 +358,101 @@ function AssistantPanel({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
 
+  function updateLastAssistant(update: (msg: ChatMessage) => ChatMessage) {
+    setMessages((m) => {
+      const copy = [...m];
+      for (let i = copy.length - 1; i >= 0; i -= 1) {
+        if (copy[i].role === "assistant") {
+          copy[i] = update(copy[i]);
+          break;
+        }
+      }
+      return copy;
+    });
+  }
+
+  async function fallbackChat(userQuestion: string) {
+    const data = await api<{ answer: { answer: string; source_snippets: SourceRegion[] } }>(
+      `/api/documents/${documentId}/chat`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: userQuestion }),
+      },
+    );
+    onSources(data.answer.source_snippets);
+    updateLastAssistant(() => ({
+      role: "assistant",
+      content: data.answer.answer,
+      sources: data.answer.source_snippets,
+    }));
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!question.trim() || !documentId || disabled) return;
     const userQuestion = question.trim();
     setQuestion("");
-    setMessages((m) => [...m, { role: "user", content: userQuestion }]);
+    setMessages((m) => [...m, { role: "user", content: userQuestion }, { role: "assistant", content: "" }]);
     setLoading(true);
+
+    let receivedToken = false;
     try {
-      const data = await api<{ answer: { answer: string; source_snippets: SourceRegion[] } }>(`/api/documents/${documentId}/chat`, {
+      const response = await fetch(`${API_BASE}/api/documents/${documentId}/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: userQuestion }),
       });
-      onSources(data.answer.source_snippets);
-      setMessages((m) => [...m, { role: "assistant", content: data.answer.answer, sources: data.answer.source_snippets }]);
+      if (!response.ok || !response.body) throw new Error("stream-unavailable");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamErrored = false;
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() ?? "";
+        for (const frame of frames) {
+          const dataLine = frame.split("\n").find((line) => line.startsWith("data:"));
+          if (!dataLine) continue;
+          const raw = dataLine.slice(5).trim();
+          if (!raw) continue;
+          const evt = JSON.parse(raw) as { type: string; value?: unknown };
+          if (evt.type === "token") {
+            receivedToken = true;
+            const token = String(evt.value ?? "");
+            updateLastAssistant((msg) => ({ ...msg, content: msg.content + token }));
+          } else if (evt.type === "sources") {
+            const sources = (evt.value as SourceRegion[]) ?? [];
+            onSources(sources);
+            updateLastAssistant((msg) => ({ ...msg, sources }));
+          } else if (evt.type === "error") {
+            streamErrored = true;
+          }
+        }
+      }
+
+      if (streamErrored && !receivedToken) throw new Error("stream-error");
+      if (streamErrored) {
+        updateLastAssistant((msg) => ({ ...msg, content: msg.content || "The assistant could not complete the answer." }));
+      }
     } catch (err) {
-      setMessages((m) => [...m, { role: "assistant", content: err instanceof Error ? err.message : "Chat failed" }]);
+      if (receivedToken) {
+        updateLastAssistant((msg) => ({ ...msg, content: msg.content || "Chat failed" }));
+      } else {
+        try {
+          await fallbackChat(userQuestion);
+        } catch (fallbackErr) {
+          updateLastAssistant(() => ({
+            role: "assistant",
+            content: fallbackErr instanceof Error ? fallbackErr.message : "Chat failed",
+          }));
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -397,8 +475,12 @@ function AssistantPanel({
                 <p className="rounded-xl bg-slate-100 p-3 text-sm text-slate-600">Try: What is the document title? What action is required?</p>
               )}
               {messages.map((msg, i) => (
-                <div key={i} dir="auto" className={`rounded-xl p-3 text-sm ${msg.role === "user" ? "ml-6 bg-ink text-white" : "mr-6 bg-slate-100 text-ink"}`}>
-                  {msg.content}
+                <div key={i} className={`rounded-xl p-3 text-sm ${msg.role === "user" ? "ml-6 bg-ink text-white" : "mr-6 bg-slate-100 text-ink"}`}>
+                  {msg.role === "assistant" && msg.content === "" ? (
+                    <span className="text-slate-400">…</span>
+                  ) : (
+                    msg.content
+                  )}
                   {msg.sources?.length ? (
                     <button type="button" className="mt-2 text-xs font-semibold text-copper" onClick={() => onSources(msg.sources ?? [])}>Highlight source</button>
                   ) : null}
