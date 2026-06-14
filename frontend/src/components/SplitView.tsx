@@ -50,7 +50,7 @@ export function SplitView({
             {activeSnippet && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="absolute inset-x-6 top-6 rounded-2xl border border-copper bg-white/95 p-4 text-sm shadow-glow">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-copper">Cited passage</p>
-                <p>{activeSnippet}</p>
+                <p dir="auto">{activeSnippet}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -71,8 +71,8 @@ export function SplitView({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-copper">Digitized output</p>
-                <h2 className="mt-1 text-2xl font-bold">{extraction.document_kind}</h2>
-                <p className="mt-1 text-sm text-slate-600">{extraction.summary}</p>
+                <h2 className="mt-1 text-2xl font-bold" dir="auto">{extraction.document_kind}</h2>
+                <p className="mt-1 text-sm text-slate-600" dir="auto">{extraction.summary}</p>
               </div>
               {upload && (
                 <div className="flex gap-2">
@@ -98,7 +98,7 @@ export function SplitView({
               <div className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">
                 <p className="font-semibold">Human review notes</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
-                  {extraction.notes.map((note, i) => <li key={i}>{note}</li>)}
+                  {extraction.notes.map((note, i) => <li key={i} dir="auto">{note}</li>)}
                 </ul>
               </div>
             )}
