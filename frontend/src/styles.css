@@ -416,7 +416,10 @@
   }
 
   .naskh-viewer-highlight-label {
-    @apply absolute bottom-3 left-3 rounded-full px-2 py-1 text-xs font-semibold;
+    @apply absolute bottom-2 left-2 rounded-full px-2.5 py-1 text-xs font-semibold;
+    width: max-content;
+    max-width: min(180px, 50vw);
+    white-space: nowrap;
     background: var(--accent);
     color: #fff;
   }
@@ -612,8 +615,12 @@
   }
 
   .naskh-viewer-passage-overlay {
-    @apply absolute left-0 right-0 z-10 mx-auto block max-w-[min(280px,90%)] rounded-lg px-2.5 py-1.5 text-xs leading-snug shadow-lg;
+    @apply absolute z-10 block rounded-lg px-2.5 py-1.5 text-xs leading-snug shadow-lg;
+    left: 0;
     top: calc(100% + 6px);
+    width: max-content;
+    max-width: min(280px, 60vw);
+    white-space: normal;
     background: var(--surface);
     color: var(--text);
     border: 1px solid var(--border);
