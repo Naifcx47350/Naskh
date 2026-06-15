@@ -1,3 +1,4 @@
+import csv
 import json
 import re
 from pathlib import Path
@@ -61,7 +62,10 @@ def _set_cell_text(cell, text: str) -> None:
 def write_docx(document_id: str, extraction: DocumentExtraction) -> Path:
     output_path = get_settings().data_dir / "exports" / f"{document_id}.docx"
     doc = Document()
-    doc.add_heading("Naskh Digitized Document", level=1)
+    doc.add_heading("Naskh — Digitized Document Report", level=0)
+    doc.add_paragraph(f"Document type: {extraction.document_kind}")
+    doc.add_paragraph(f"Language: {extraction.language}")
+    doc.add_heading("Executive summary", level=1)
     _add_paragraph(doc, extraction.summary)
 
     if extraction.transcription:
@@ -99,4 +103,23 @@ def write_json(document_id: str, extraction: DocumentExtraction) -> Path:
         json.dumps(extraction.model_dump(), ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+    return output_path
+
+
+def write_csv(document_id: str, extraction: DocumentExtraction) -> Path:
+    output_path = get_settings().data_dir / "exports" / f"{document_id}.csv"
+    with output_path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["field", "value", "field_type", "confidence", "source_snippet", "source_page"])
+        for field in extraction.fields:
+            writer.writerow(
+                [
+                    field.label,
+                    field.value,
+                    field.field_type,
+                    f"{field.confidence:.2f}",
+                    field.source.snippet,
+                    field.source.page,
+                ]
+            )
     return output_path
