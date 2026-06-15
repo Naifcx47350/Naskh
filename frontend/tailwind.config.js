@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "IBM Plex Arabic", "Noto Naskh Arabic", "system-ui", "sans-serif"],
-        arabic: ["IBM Plex Arabic", "Noto Naskh Arabic", "serif"],
+        sans: ["Inter", "IBM Plex Arabic", "Noto Naskh Arabic", "Cairo", "Tajawal", "Segoe UI", "Tahoma", "Arial", "system-ui", "sans-serif"],
+        arabic: ["IBM Plex Arabic", "Noto Naskh Arabic", "Cairo", "Tajawal", "Segoe UI", "Tahoma", "Arial", "sans-serif"],
       },
     },
   },

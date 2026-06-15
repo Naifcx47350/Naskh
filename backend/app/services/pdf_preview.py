@@ -137,9 +137,17 @@ def _draw_line(draw: ImageDraw.ImageDraw, y: int, line: str, font) -> None:
         draw.text((MARGIN_X, y), line, font=font, fill=(23, 32, 51), anchor="la")
 
 
+def _extract_page_text(page) -> str:
+    """Extract text from a pypdf page, preferring layout mode for correct RTL ordering."""
+    try:
+        return (page.extract_text(extraction_mode="layout") or "").strip()
+    except TypeError:
+        return (page.extract_text() or "").strip()
+
+
 def _render_text_fallback(pdf_path: Path) -> list[Image.Image]:
-    reader = PdfReader(str(pdf_path))
-    blocks = [(page.extract_text() or "").strip() for page in reader.pages]
+    reader = PdfReader(str(pdf_path), strict=False)
+    blocks = [_extract_page_text(page) for page in reader.pages]
     full = "\n\n".join(block for block in blocks if block).strip()
     if not full:
         full = (
