@@ -52,10 +52,11 @@ Set these values in `backend/.env`:
 ```env
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
+OPENAI_CHAT_MODEL=
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
-The default model is `gpt-4o-mini` to keep the demo cost lower while preserving vision and structured-output support. Use `gpt-4o` for a stronger live demo pass if quality matters more than cost. Avoid `3.5` for the main extraction path because it does not cover the image understanding requirement.
+Default model is `gpt-4o-mini` to control cost during development. Switch to `OPENAI_MODEL=gpt-4o` for final rehearsal or live demo when extraction quality matters more. Avoid `3.5` for the main extraction path because it does not cover the image understanding requirement.
 
 PDF preview conversion uses `pdf2image`, which requires Poppler on Windows. For the fastest demo path, upload a clear PNG/JPEG photo if Poppler is not installed.
 
@@ -75,12 +76,13 @@ VITE_API_BASE=http://localhost:8000
 
 ## Demo Flow
 
-1. Upload one prepared printed document or handwritten Arabic photo.
-2. Confirm the preview appears.
-3. Click `Process document`.
-4. Hover fields in the result panel to show the cited source highlight.
-5. Ask the floating assistant a question about the document.
-6. Export `.docx` or JSON.
+1. Pick a document from the **sample gallery** on the landing page (5 business samples — works offline, no API key).
+2. Or upload a PDF/PNG/JPEG, then click **Process document** (requires `OPENAI_API_KEY`).
+3. Review the insights strip and flagged fields; hover or click to sync highlights on the document viewer.
+4. Open the assistant, tap a suggested question, then **Jump to source** on cited answers (requires API key).
+5. Export DOCX, JSON, or CSV.
+
+Full script: [docs/10-demo-playbook.md](./docs/10-demo-playbook.md). Sample assets live in `backend/samples/`.
 
 ## Scope Notes
 

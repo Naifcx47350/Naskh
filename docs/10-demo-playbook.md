@@ -1,38 +1,45 @@
 # Demo Playbook
 
-Step-by-step guide for presenting Naskh in a hackathon or stakeholder demo (~10 minutes).
+Step-by-step guide for presenting Naskh in a hackathon or stakeholder demo (~10 minutes). **Primary path: sample gallery (offline-safe).** Live upload is the optional “real files too” beat.
 
 ## Before the session
 
 ### Environment checklist
 
 - [ ] Conda env `IntelStack` activated
-- [ ] `backend/.env` configured (prefer real key for live demo)
-- [ ] `python run_dev.py` starts both servers cleanly
-- [ ] Browser opens to `http://127.0.0.1:5173/`
-- [ ] Hard refresh once (Ctrl+F5) to avoid stale CSS
+- [ ] `backend/.env` configured — **`OPENAI_MODEL=gpt-4o-mini`** for rehearsals; switch to **`gpt-4o`** only for final live demo if quality matters more than cost
+- [ ] `python run_dev.py` from repo root — both servers start cleanly
+- [ ] Browser: `http://127.0.0.1:5173/` (not port 8000)
+- [ ] Hard refresh once (**Ctrl+F5**) to avoid stale CSS
 - [ ] Optional: close unrelated tabs; disable notifications
 
-### Backup plan
+### Fallback plan (network / API failure)
 
-If API fails or network blocks OpenAI:
+**You can run the entire core demo without OpenAI:**
 
-1. Use **Load demo sample** (no upload)
-2. **Process document** — sample extraction loads
-3. Assistant still answers from demo logic
-4. Exports still work
+1. Gallery → pick **Regulatory Circular** (or any of the 5 samples)
+2. Fields, insights, transcription, review banner, exports — all work instantly
+3. Hover fields → source highlight on viewer
+4. Review jump → flagged field + document region
+5. Assistant shows suggested questions but chat is disabled with an honest API-key message
 
-Practice this path once so you can switch without panic.
+If API drops **mid-demo** after you started live chat:
 
-### Sample files to prepare (live path)
+> “The offline gallery path shows the same extraction and audit workflow — let me continue from the prepared sample.”
 
-| File | Why |
+Click **Regulatory Circular** in the gallery and resume from fields + highlight + export. Do not pretend chat still works.
+
+Practice the gallery-only path once so you can switch without panic.
+
+### Samples to use (and avoid)
+
+| Sample | When to use |
 | --- | --- |
-| Clear PNG of printed Arabic circular | Shows transcription + fields |
-| Photo of handwritten note (optional) | Shows honest “first pass” positioning |
-| PDF (if Poppler installed) | Shows multi-format support |
-
-Keep files on desktop for drag-drop; do not rely on slow network upload during pitch.
+| **Regulatory Circular** | **Open here** — best story, best highlight loop |
+| Commercial Agreement | English contract variety |
+| Compliance Notice | Bilingual policy |
+| Arabic Tax Invoice | Only if discussing review — total field is low confidence |
+| Board Resolution | Avoid as opener — date field needs review |
 
 ---
 
@@ -40,61 +47,71 @@ Keep files on desktop for drag-drop; do not rely on slow network upload during p
 
 ### 1. Hook (30 sec)
 
-> “Saudi organizations still have mountains of paper rules and contracts. Naskh is a human-in-the-loop assistant: AI does the first pass, your team reviews and approves.”
+> “Saudi organizations still have mountains of paper rules and contracts. Naskh is a human-in-the-loop assistant: AI does the first pass, your team reviews exactly what needs attention.”
 
-Show landing page — point out upload zone and assistant bubble.
+Show landing page — **sample gallery** front and center. Mention upload as secondary.
 
-### 2. Ingest (1 min)
+### 2. One-click ingest (30 sec) — gallery wow #1
 
-**Option A — Live upload:** Drag prepared PNG/PDF onto upload zone.
+Click **Regulatory Circular** card.
 
-**Option B — Safe default:** Click **Load demo sample**.
+> “No upload spinner — we ship prepared business samples so the workflow is instant. In production, the same pipeline runs on live uploads.”
 
-Confirm preview appears in the workspace.
+Confirm: preview, insights strip, fields, transcription appear **immediately**.
 
-### 3. Extract (2 min)
+### 3. Auditability (1.5 min) — review story
 
-Click **Process document**.
+Point at **insights strip** (document kind, language, summary, confidence).
 
-While loading:
+Point at **“X fields need review”** banner (if shown):
 
-> “We send page previews to a vision model server-side — keys never hit the browser. Output is structured: fields, confidence, and full Arabic transcription.”
+> “We don’t hide uncertainty — amber fields are what a human should verify before export.”
 
-When complete:
+- Hover a high-confidence field → highlight on document
+- Click **Jump to review** (or a flagged field) → viewer scrolls to source
 
-- Scroll structured fields
-- **Hover a field** → source highlight on original panel
-> “Every field is tied to an exact source snippet for auditability.”
+> “Every field ties to an exact source snippet. One click from flag to proof.”
 
-### 4. Human review (1 min)
+### 4. Hero moment (2 min) — ask → answer → highlight
 
-Click into transcription textarea; make a small edit.
+Open assistant (**Alt+A** or FAB). Tap a **suggested question chip**, e.g.:
 
-> “The operator corrects Arabic text before export — we’re not claiming perfect OCR.”
-
-### 5. Assistant (2 min)
-
-Open floating assistant (already visible). Ask:
-
-- “What is the document title?”
+- “What action is required?”
 - “Who issued this document?”
-- “Summarize the main obligation.”
 
-When answer arrives, point to **cited snippets** and highlight on preview.
+While answer streams:
 
-> “Answers are grounded in the document via RAG — not generic ChatGPT.”
+> “Answers are grounded in this document via RAG — not generic ChatGPT.”
+
+When complete, click **Jump to source** on the citation:
+
+> “The exact region lights up on the original — that’s the audit trail judges remember.”
+
+*(Requires `OPENAI_API_KEY`. If missing, skip to step 5 and narrate chat from the pitch deck.)*
+
+### 5. Human review (1 min)
+
+Edit a line in the transcription textarea.
+
+> “The operator corrects Arabic text before export — we’re honest that handwriting is a first pass, not solved OCR.”
 
 ### 6. Export (1 min)
 
-Download **DOCX** and briefly open it, or **JSON** for integrators.
+Download **DOCX** (open briefly — titled header, fields table, RTL Arabic), **JSON**, or **CSV**.
 
-> “Ready for archive or downstream systems.”
+> “Ready for archive, compliance queue, or downstream systems.”
 
-### 7. Close — vision + honesty (1 min)
+### 7. Optional live upload (1 min)
+
+If time and API allow: drag a PNG onto upload → **Process document**.
+
+> “Same pipeline on documents you bring — keys stay server-side.”
+
+### 8. Close — vision + honesty (1 min)
 
 **Vision:** Batch digitization, review queues, fine-tuned Arabic models, government-scale backlog.
 
-**Honesty:** Handwriting is assistive; Poppler improves PDF fidelity; no auth in MVP.
+**Honesty:** Handwriting is assistive; highlights approximate snippet location; no auth in MVP; gallery uses curated extractions for reliable demos.
 
 ---
 
@@ -105,7 +122,8 @@ Download **DOCX** and briefly open it, or **JSON** for integrators.
 | Why not pure OCR? | Arabic handwriting + regulatory layout needs human review; we optimize for cited, editable first pass |
 | Where is AI? | Vision extraction, structured outputs, embeddings, RAG chat |
 | Security? | API keys backend-only; no client-side model calls |
-| Differentiator? | Split-view source sync + embedded cited assistant in one flow |
+| Differentiator? | Ask → cited answer → live source highlight + review layer in one flow |
+| Offline / reliable demo? | Five-sample gallery with prepared extractions — no network required for core UX |
 | Scalability story? | Chunk indexing per doc → queue workers → fine-tuned models (roadmap) |
 
 ---
@@ -116,16 +134,32 @@ Download **DOCX** and briefly open it, or **JSON** for integrators.
 | --- | --- |
 | Blank/unstyled UI | Stop servers; `python run_dev.py`; Ctrl+F5 |
 | 404 on port 8000 | You opened backend URL — use **5173** for UI |
-| Process error | Switch to demo sample + process |
-| Slow process | Narrate “vision model analyzing pages”; have demo sample pre-processed in second tab as backup |
-| PDF looks like text not scan | Mention Poppler optional; use PNG for demo |
-| Chat empty | Ensure process completed first |
+| Gallery empty / 500 | Confirm `backend/samples/` exists with 5 folders + manifest |
+| Process error on upload | Switch to gallery sample; narrate offline path |
+| Slow process | Narrate “vision model analyzing pages”; fall back to gallery |
+| PDF looks like text not scan | Mention Poppler optional; gallery uses PNG previews |
+| Chat empty / disabled | Need API key + processed/indexed doc; use gallery + suggested chips |
+| Highlight seems off | Snippet text match, not pixel OCR — honest positioning |
+| Wrong model quality | Set `OPENAI_MODEL=gpt-4o` in `.env`, restart backend |
 
 ---
 
 ## Post-demo Q&A prep
 
-- **Cost:** `gpt-4o-mini` default; ~few cents per document for MVP page counts
-- **Languages:** Optimized for Arabic; handles mixed Arabic/English
-- **Data retention:** Local `backend/data/` only in MVP
-- **Next sprint:** Streaming chat, RTL polish, transcription save — see [09-roadmap.md](./09-roadmap.md)
+- **Cost:** Default `gpt-4o-mini`; a few cents per document at MVP page counts; `gpt-4o` for higher extraction quality when needed
+- **Languages:** Optimized for Arabic; handles mixed Arabic/English samples
+- **Data retention:** Local `backend/data/` for uploads; gallery data in `backend/samples/` (committed)
+- **Not in MVP:** Multi-doc compare, auth, CI — see [09-roadmap.md](./09-roadmap.md)
+
+---
+
+## 10-minute cold-start gauntlet (pre-lock checklist)
+
+Run once before demo-lock:
+
+1. `python run_dev.py` → Ctrl+F5
+2. Click each of 5 gallery cards — all load fully offline
+3. Regulatory Circular: hover field, review jump, export DOCX opens correctly
+4. With API key: suggested chip → stream → Jump to source (smooth, no dead frame)
+5. `?` shortcuts modal; Alt+T theme persists after reload
+6. Resize to ~390px — gallery stacks, assistant is bottom sheet, no body overflow

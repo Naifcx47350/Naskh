@@ -59,9 +59,9 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 | Setting | Default | Notes |
 | --- | --- | --- |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Vision + structured outputs; cost-effective for hackathon |
+| `OPENAI_MODEL` | `gpt-4o` | Vision + structured extraction (master prompt: strongest multimodal model) |
+| `OPENAI_CHAT_MODEL` | _(empty → uses `OPENAI_MODEL`)_ | Optional cheaper model for chat only, e.g. `gpt-4o-mini` |
 | `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | RAG chunk retrieval |
-| Upgrade path | `gpt-4o` | Use for stronger live demo if budget allows |
 
 **Do not use GPT-3.5** for the main extraction path — it does not meet the vision requirement.
 

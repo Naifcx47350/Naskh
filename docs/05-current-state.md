@@ -1,71 +1,95 @@
 # Current State
 
-Last updated after merging the P1 work — streaming chat (PR #1), Arabic RTL (PR #2), and the frontend component split (PR #3). Use this doc to understand what is **done**, **partial**, and **not started**.
+Last updated after the **final polish & wow pass** (sample gallery, citation highlight loop, review layer, insights strip, exports, a11y). Use this doc to understand what is **done**, **partial**, and **not started**.
 
 ## Implementation status
 
-| Area | Status | Notes | Completed by |
+| Area | Status | Notes |
+| --- | --- | --- |
+| File upload (PDF, PNG, JPEG, WebP) | Done | Stored under `backend/data/uploads/` |
+| PDF/image preview generation | Done | Poppler path + pypdf fallback |
+| **Sample gallery (5 docs)** | Done | `backend/samples/` — offline prepared extractions + thumbnails |
+| Demo sample shortcut | Done | `POST /api/documents/demo` loads `saudi-regulatory-circular` |
+| Vision extraction (OpenAI) | Done | Pydantic `DocumentExtraction` schema |
+| Polished UI / animations | Done | Design tokens, dark mode, deliberate ~350ms highlight motion |
+| Dark mode | Done | CSS variable themes + header toggle; paper preview stays light |
+| Interactive document viewer | Done | Zoom, pagination, snippet-positioned highlight, bidirectional sync |
+| **Ask → answer → highlight loop** | Done | Streaming SSE + citation resolver → viewer scroll/zoom + field emphasis |
+| Assistant panel layout | Done | Fixed viewport-safe anchor; closed by default; mobile bottom sheet |
+| **Suggested question chips** | Done | Generated from extracted content in assistant empty state |
+| **Insights strip** | Done | Document kind, language, pages, parties/dates, summary, overall confidence |
+| **Review / auditability layer** | Done | “X fields need review” banner, filter, one-click jump to source |
+| **Extraction PATCH persist** | Done | `PATCH /api/documents/{id}/extraction` — transcription + fields in session |
+| Floating document assistant | Done | FAB bottom-right; streaming SSE chat; “Jump to source” on citations |
+| Streaming chat responses | Done | SSE token stream; honest no-citation message when ungrounded |
+| Arabic RTL in UI | Done | `dir="auto"` on Arabic text; browser shapes natively |
+| Arabic RTL in DOCX export | Done | Branded header, fields table, `w:bidi` / `w:rtl` on Arabic runs |
+| **Branded exports** | Done | DOCX, full JSON, fields-only CSV |
+| **Skeleton loaders** | Done | Viewer + fields during processing (no bare spinners) |
+| **Keyboard shortcuts** | Done | `?`, Alt+T/A/P — see ShortcutsModal |
+| **Accessibility / motion** | Done | Focus rings, ARIA on modals/FAB; `prefers-reduced-motion` disables big animations |
+| Demo fallback without API key | Done | Gallery + prepared extractions — full UI offline |
+| Auth / multi-user | Out of scope | — |
+| CI/CD pipeline | Not started | — |
+| **Stretch (multi-doc compare, brief export)** | Not started | Intentionally skipped — demo-locked on Sections 1–5 |
+
+## Sample documents
+
+Canonical location: **`backend/samples/`** (not `data/samples/` — that path was never present in the repo).
+
+| ID | Name | Lead? | Notes |
 | --- | --- | --- | --- |
-| File upload (PDF, PNG, JPEG, WebP) | Done | Stored under `backend/data/uploads/` | — |
-| PDF/image preview generation | Done | Poppler path + pypdf fallback | — |
-| Demo sample document | Done | `POST /api/documents/demo` | — |
-| Vision extraction (OpenAI) | Done | Pydantic `DocumentExtraction` schema | — |
-| Demo fallback without API key | Done | Sample JSON + rule-based chat | — |
-| Split-view UI | Done | Original + digitized panels | — |
-| Field hover → source highlight | Done | Uses `source.page` + `source.snippet` | — |
-| Editable transcription | Done | Client-side textarea | — |
-| Floating document assistant | Done | Always visible; opens by default | — |
-| RAG chat with citations | Done | Chroma + embeddings when API key set | — |
-| Export DOCX | Done | Structured fields + transcription | — |
-| Export JSON | Done | Full extraction payload | — |
-| Backend smoke tests | Done | 4 tests in `backend/tests/` | — |
-| `run_dev.py` one-command dev | Done | Restarts stale ports on Windows | — |
-| Polished UI / animations | Done | Tailwind v3, Framer Motion, hero + cards | — |
-| Streaming chat responses | Done | SSE token stream; falls back to non-streaming `/chat` | Mohammed Hutatah · [#1](https://github.com/Naifcx47350/IntelliStack/pull/1) |
-| Arabic RTL in UI | Done | `dir="auto"` on Arabic text; browser shapes natively | Mohammed Hutatah · [#2](https://github.com/Naifcx47350/IntelliStack/pull/2) |
-| Arabic RTL in DOCX export | Done | `w:bidi` + `w:rtl` on Arabic runs/cells; right-aligned | Mohammed Hutatah · [#2](https://github.com/Naifcx47350/IntelliStack/pull/2) |
-| Auth / multi-user | Out of scope | — | — |
-| CI/CD pipeline | Not started | — | — |
-| Component split (frontend) | Done | `App.tsx` → `types` / `lib/api` / `UploadZone` / `SplitView` / `FieldList` / `ProcessingState` / `AssistantPanel` | Mohammed Hutatah · [#3](https://github.com/Naifcx47350/IntelliStack/pull/3) |
+| `saudi-regulatory-circular` | Regulatory Circular | **Yes** | Best wow moment — handwritten Arabic memo |
+| `commercial-agreement` | Commercial Agreement | | English contract; one moderate-confidence clause |
+| `compliance-notice` | Compliance Notice | | Bilingual; moderate email field |
+| `arabic-tax-invoice` | Arabic Tax Invoice | | **Avoid leading** — total amount at 0.58 confidence |
+| `board-resolution` | Board Resolution | | **Avoid leading** — effective date at 0.55 confidence |
+
+Each folder contains `extraction.json` + `preview.png`. Manifest: `backend/samples/manifest.json`.
 
 ## Verified flows
 
-### Demo path (no API key)
+### Gallery path (no API key — primary demo)
 
-1. **Load demo sample** → preview appears
-2. **Process document** → sample extraction loads with note about API key
-3. Hover fields → highlight on preview panel
-4. Ask assistant → keyword-matched demo answer with citation
-5. Export DOCX / JSON
+1. Open app → **sample gallery** on landing (5 cards with thumbnails)
+2. Click **Regulatory Circular** → preview + fields + insights + transcription appear **instantly**
+3. Hover field → highlight on viewer; click review banner → jump to flagged field + source
+4. Export DOCX / JSON / CSV
+5. Assistant shows suggested questions but chat requires API key (honest disabled state)
 
 ### Live path (with API key)
 
-Same flow; extraction and chat use OpenAI + Chroma indexing.
+1. Gallery or upload → **Process document** (or chat on gallery-loaded doc after re-index if needed)
+2. Ask a suggested question → streaming answer + **Jump to source** → viewer animates to cited snippet
+3. Edit transcription → persists via PATCH for the session
 
 ## Test coverage
 
 ```powershell
 conda activate IntelStack
-python -m pytest backend/tests -v
+cd backend
+python -m pytest tests -v
 ```
 
-Current tests cover:
+**10 tests** — all passing. Covers:
 
-- Schema validation
-- Export writers
-- RAG chunking logic
+- Schema validation, export writers (DOCX, JSON, CSV)
+- RAG chunking, Arabic shaping
+- Demo document + gallery sample load
+- Citation source resolution
 - Upload + preview pipeline
 
-There are **no** browser E2E tests or live OpenAI integration tests (would require key + cost).
+Live OpenAI integration tests are **not** included (would require key + cost). Gate any future live tests with `pytest -m integration`.
 
 ## Known limitations (be honest in pitch)
 
-1. **Handwriting quality** — Vision model first pass; operator must review Arabic transcription.
-2. **PDF without Poppler** — Preview is synthesized from extracted text, not a true rasterized page.
-3. **No persistence across sessions** — Documents live in local `backend/data/`; clearing data deletes work.
-4. **No auth** — Anyone with network access to the server can upload/process.
-5. **Single-page frontend** — All UI logic in one file; fine for MVP, refactor later.
-6. **Chat latency** — Full round-trip; no streaming UX yet.
+1. **Handwriting quality** — Vision model first pass; operator must review Arabic transcription and low-confidence fields.
+2. **Highlight positioning** — Citation regions are approximated by matching snippet text in transcription/page context, not pixel-perfect OCR boxes.
+3. **PDF without Poppler** — Preview may be synthesized from extracted text, not a true rasterized page.
+4. **Session persistence only** — Documents live in local `backend/data/`; clearing data deletes work. PATCH updates persist to disk for the current document id.
+5. **No auth** — Anyone with network access to the server can upload/process.
+6. **Chat without API key** — Gallery and exports work offline; assistant chat is disabled with an honest message.
+7. **Prepared extractions** — Gallery samples use curated JSON; live upload quality may differ.
 
 ## Data that is gitignored
 
@@ -77,7 +101,7 @@ frontend/dist/
 __pycache__/
 ```
 
-Team members need to run locally and generate their own uploads/previews.
+**Committed for demo:** `backend/samples/**` (extractions, previews, manifest).
 
 ## Environment naming note
 

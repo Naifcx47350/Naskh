@@ -14,6 +14,7 @@ This folder is the onboarding source for the current hackathon MVP. Read these d
 | [08-backend-guide.md](./08-backend-guide.md) | Services, storage, AI pipeline, and tests |
 | [09-roadmap.md](./09-roadmap.md) | Next steps, enhancements, and pitch priorities |
 | [10-demo-playbook.md](./10-demo-playbook.md) | Live demo script, backup path, and judge Q&A |
+| [11-implementation-changes.md](./11-implementation-changes.md) | Frontend transformation changelog and verification steps |
 
 ## Quick links
 
