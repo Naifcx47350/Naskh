@@ -1,0 +1,40 @@
+{
+  "document_kind": "Arabic VAT tax invoice",
+  "language": "Arabic",
+  "summary": "Tax invoice from Riyadh Office Supplies to Najd Consulting for furniture with 15% VAT.",
+  "transcription": "فاتورة ضريبية\nمؤسسة مستلزمات الرياض للتجارة\nالرقم الضريبي: 310123456700003\n\nالعميل: شركة نجد للاستشارات\nالتاريخ: 2025/02/18\n\nالإجمالي قبل الضريبة: 12,500.00 ر.س\nضريبة القيمة المضافة (15%): 1,875.00 ر.س\nالإجمالي شامل الضريبة: 14,375.00 ر.س",
+  "fields": [
+    {
+      "label": "Seller",
+      "value": "مؤسسة مستلزمات الرياض للتجارة",
+      "field_type": "party",
+      "source": { "page": 1, "snippet": "مؤسسة مستلزمات الرياض للتجارة" },
+      "confidence": 0.93
+    },
+    {
+      "label": "Buyer",
+      "value": "شركة نجد للاستشارات",
+      "field_type": "party",
+      "source": { "page": 1, "snippet": "العميل: شركة نجد للاستشارات" },
+      "confidence": 0.89
+    },
+    {
+      "label": "Tax ID",
+      "value": "310123456700003",
+      "field_type": "reference",
+      "source": { "page": 1, "snippet": "الرقم الضريبي: 310123456700003" },
+      "confidence": 0.86
+    },
+    {
+      "label": "Total with VAT",
+      "value": "14,375.00 ر.س",
+      "field_type": "amount",
+      "source": { "page": 1, "snippet": "الإجمالي شامل الضريبة: 14,375.00 ر.س" },
+      "confidence": 0.58
+    }
+  ],
+  "notes": [
+    "Total amount line is slightly blurred — review recommended before posting.",
+    "Prepared sample from a prior live pipeline run for offline demo reliability."
+  ]
+}

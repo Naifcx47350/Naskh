@@ -1,0 +1,40 @@
+{
+  "document_kind": "Compliance notice",
+  "language": "Arabic / English",
+  "summary": "Bilingual notice requiring updated anti-bribery training completion by 30 April 2025.",
+  "transcription": "إشعار امتثال / COMPLIANCE NOTICE\n\nSubject: Mandatory Anti-Bribery Training\nالموضوع: التدريب الإلزامي على مكافحة الرشوة\n\nAll staff must complete the module by 30 April 2025.\nيجب على جميع الموظفين إكمال البرنامج قبل 30 أبريل 2025.\n\nContact: compliance@example.sa",
+  "fields": [
+    {
+      "label": "Subject",
+      "value": "Mandatory Anti-Bribery Training",
+      "field_type": "title",
+      "source": { "page": 1, "snippet": "Mandatory Anti-Bribery Training" },
+      "confidence": 0.95
+    },
+    {
+      "label": "Deadline",
+      "value": "30 April 2025",
+      "field_type": "date",
+      "source": { "page": 1, "snippet": "complete the module by 30 April 2025" },
+      "confidence": 0.91
+    },
+    {
+      "label": "Arabic obligation",
+      "value": "إكمال البرنامج قبل 30 أبريل 2025",
+      "field_type": "clause",
+      "source": { "page": 1, "snippet": "إكمال البرنامج قبل 30 أبريل 2025" },
+      "confidence": 0.83
+    },
+    {
+      "label": "Contact",
+      "value": "compliance@example.sa",
+      "field_type": "reference",
+      "source": { "page": 1, "snippet": "compliance@example.sa" },
+      "confidence": 0.64
+    }
+  ],
+  "notes": [
+    "Contact email confidence is moderate due to small font size.",
+    "Prepared sample from a prior live pipeline run for offline demo reliability."
+  ]
+}

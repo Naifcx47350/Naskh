@@ -1,0 +1,47 @@
+{
+  "document_kind": "Commercial services agreement",
+  "language": "English",
+  "summary": "Printed agreement between Al Noor Trading LLC and Gulf Logistics for warehouse services starting March 2025.",
+  "transcription": "COMMERCIAL SERVICES AGREEMENT\n\nThis Agreement is entered into on 1 March 2025 between Al Noor Trading LLC (\"Client\") and Gulf Logistics W.L.L. (\"Provider\").\n\nScope: Provider shall operate warehouse and fulfillment services at the Riyadh DC.\n\nTerm: Twelve (12) months from the Effective Date.\n\nPayment: SAR 48,000 per month, net 30 days.",
+  "fields": [
+    {
+      "label": "Effective date",
+      "value": "1 March 2025",
+      "field_type": "date",
+      "source": { "page": 1, "snippet": "entered into on 1 March 2025" },
+      "confidence": 0.94
+    },
+    {
+      "label": "Client party",
+      "value": "Al Noor Trading LLC",
+      "field_type": "party",
+      "source": { "page": 1, "snippet": "Al Noor Trading LLC (\"Client\")" },
+      "confidence": 0.92
+    },
+    {
+      "label": "Provider party",
+      "value": "Gulf Logistics W.L.L.",
+      "field_type": "party",
+      "source": { "page": 1, "snippet": "Gulf Logistics W.L.L. (\"Provider\")" },
+      "confidence": 0.90
+    },
+    {
+      "label": "Monthly fee",
+      "value": "SAR 48,000",
+      "field_type": "amount",
+      "source": { "page": 1, "snippet": "SAR 48,000 per month" },
+      "confidence": 0.87
+    },
+    {
+      "label": "Contract term",
+      "value": "Twelve (12) months",
+      "field_type": "clause",
+      "source": { "page": 1, "snippet": "Twelve (12) months from the Effective Date" },
+      "confidence": 0.61
+    }
+  ],
+  "notes": [
+    "Contract term clause has lower confidence due to faint print on the scan.",
+    "Prepared sample from a prior live pipeline run for offline demo reliability."
+  ]
+}

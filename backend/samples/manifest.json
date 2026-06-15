@@ -1,0 +1,39 @@
+{
+  "samples": [
+    {
+      "id": "saudi-regulatory-circular",
+      "name": "Regulatory Circular",
+      "description": "Handwritten Arabic memo — title, issuing body, required action",
+      "pitch_priority": 1,
+      "recommended_lead": true
+    },
+    {
+      "id": "commercial-agreement",
+      "name": "Commercial Agreement",
+      "description": "Printed contract — parties, effective date, payment terms",
+      "pitch_priority": 2,
+      "recommended_lead": false
+    },
+    {
+      "id": "arabic-tax-invoice",
+      "name": "Arabic Tax Invoice",
+      "description": "VAT invoice — seller, buyer, amount, tax ID",
+      "pitch_priority": 3,
+      "recommended_lead": false
+    },
+    {
+      "id": "compliance-notice",
+      "name": "Compliance Notice",
+      "description": "Bilingual policy notice — deadline and obligations",
+      "pitch_priority": 4,
+      "recommended_lead": false
+    },
+    {
+      "id": "board-resolution",
+      "name": "Board Resolution",
+      "description": "Arabic board minutes — decision, signatories, date",
+      "pitch_priority": 5,
+      "recommended_lead": false
+    }
+  ]
+}

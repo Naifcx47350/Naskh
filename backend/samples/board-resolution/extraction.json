@@ -1,0 +1,40 @@
+{
+  "document_kind": "Board resolution",
+  "language": "Arabic",
+  "summary": "Board resolution approving appointment of a CFO and authorizing bank signatory updates.",
+  "transcription": "محضر اجتماع مجلس الإدارة\nشركة أفق للتقنية\n\nقرار رقم 2025/04\n\nيتم تعيين الأستاذ خالد العتيبي Chief Financial Officer اعتباراً من 2025/03/01.\n\nيُفوّض الرئيس التنفيذي بتحديث التوقيعات البنكية خلال 14 يوماً.\n\nتوقيع: رئيس مجلس الإدارة",
+  "fields": [
+    {
+      "label": "Company",
+      "value": "شركة أفق للتقنية",
+      "field_type": "party",
+      "source": { "page": 1, "snippet": "شركة أفق للتقنية" },
+      "confidence": 0.92
+    },
+    {
+      "label": "Resolution number",
+      "value": "2025/04",
+      "field_type": "reference",
+      "source": { "page": 1, "snippet": "قرار رقم 2025/04" },
+      "confidence": 0.88
+    },
+    {
+      "label": "Appointment",
+      "value": "تعيين خالد العتيبي CFO",
+      "field_type": "clause",
+      "source": { "page": 1, "snippet": "تعيين الأستاذ خالد العتيبي Chief Financial Officer" },
+      "confidence": 0.79
+    },
+    {
+      "label": "Effective date",
+      "value": "2025/03/01",
+      "field_type": "date",
+      "source": { "page": 1, "snippet": "اعتباراً من 2025/03/01" },
+      "confidence": 0.55
+    }
+  ],
+  "notes": [
+    "Effective date handwriting is low confidence — human review required.",
+    "Prepared sample from a prior live pipeline run for offline demo reliability."
+  ]
+}

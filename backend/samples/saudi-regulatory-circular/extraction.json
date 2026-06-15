@@ -1,0 +1,40 @@
+{
+  "document_kind": "Saudi regulatory circular",
+  "language": "Arabic",
+  "summary": "Administrative circular requiring paper records to be digitized with human review before archival.",
+  "transcription": "بسم الله الرحمن الرحيم\nتعميم إداري رقم 1445/102\nبشأن مراجعة السجلات الورقية وتحويلها إلى نسخة رقمية قابلة للتدقيق.\nيجب على جميع الإدارات تسليم السجلات خلال 30 يوماً.\nالرياض، 15 محرم 1445",
+  "fields": [
+    {
+      "label": "Document title",
+      "value": "تعميم إداري",
+      "field_type": "title",
+      "source": { "page": 1, "snippet": "تعميم إداري بشأن مراجعة السجلات الورقية" },
+      "confidence": 0.91
+    },
+    {
+      "label": "Reference number",
+      "value": "1445/102",
+      "field_type": "reference",
+      "source": { "page": 1, "snippet": "تعميم إداري رقم 1445/102" },
+      "confidence": 0.88
+    },
+    {
+      "label": "Required action",
+      "value": "تحويل السجلات الورقية إلى نسخة رقمية",
+      "field_type": "clause",
+      "source": { "page": 1, "snippet": "تحويلها إلى نسخة رقمية قابلة للتدقيق" },
+      "confidence": 0.84
+    },
+    {
+      "label": "Deadline",
+      "value": "30 يوماً",
+      "field_type": "date",
+      "source": { "page": 1, "snippet": "تسليم السجلات خلال 30 يوماً" },
+      "confidence": 0.72
+    }
+  ],
+  "notes": [
+    "Handwriting on the deadline line is moderate confidence — operator should verify.",
+    "Prepared sample from a prior live pipeline run for offline demo reliability."
+  ]
+}
