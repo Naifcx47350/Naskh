@@ -206,7 +206,7 @@ Snippet text floats on the highlight overlay; removed separate block below viewe
 
 ## Interactive zoom/pan
 
-Alt+wheel zoom at cursor; drag or Alt+mousemove to pan when zoomed. This avoids Chrome's native Ctrl+wheel page zoom conflict.
+Alt+wheel zoom at cursor; drag or Alt+mousemove to pan when zoomed. Wheel events are captured inside the viewer so Chrome/page scroll does not move while hovering the preview.
 
 ## Sample gallery
 

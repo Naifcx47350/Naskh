@@ -106,7 +106,7 @@ Main container: `max-width: min(1600px, 94vw)` — uses most of the viewport on 
 
 `DocumentViewer.tsx` renders `preview_urls` with:
 
-- Zoom in/out (50%–250%) plus **Alt+wheel zoom at cursor** over the preview
+- Zoom in/out (50%–250%) plus **Alt+wheel zoom at cursor** over the preview; wheel events stay inside the viewer so Chrome/page scroll does not move while hovering it
 - **Pan** when zoomed: click-drag, or Alt+mousemove to sweep; normal scroll when Alt is not held
 - Multi-page navigation
 - **PDF-accurate highlights** — `source.region` normalized boxes from PyMuPDF text search (`backend/app/services/pdf_layout.py`); no center-page fallback for PDFs

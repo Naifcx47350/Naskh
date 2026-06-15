@@ -105,12 +105,30 @@ export function DocumentViewer({
     });
   }
 
-  function onWheel(event: React.WheelEvent) {
-    if (!event.altKey) return;
-    event.preventDefault();
-    const delta = event.deltaY < 0 ? 0.12 : -0.12;
-    zoom(delta, event.clientX, event.clientY);
-  }
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const target = viewport;
+
+    function onNativeWheel(event: WheelEvent) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (event.altKey) {
+        const delta = event.deltaY < 0 ? 0.12 : -0.12;
+        zoom(delta, event.clientX, event.clientY);
+        return;
+      }
+
+      // Keep wheel movement inside the preview instead of bubbling to the page.
+      target.scrollLeft += event.deltaX;
+      target.scrollTop += event.deltaY;
+    }
+
+    target.addEventListener("wheel", onNativeWheel, { passive: false });
+    return () => target.removeEventListener("wheel", onNativeWheel);
+  });
+
 
   function onPointerDown(event: React.PointerEvent) {
     if (scale <= 1 && !event.altKey) return;
@@ -163,7 +181,7 @@ export function DocumentViewer({
             </span>
           )}
           {scale > 1 && (
-            <span className="naskh-info-chip">Drag to pan · Alt+wheel to zoom</span>
+            <span className="naskh-info-chip">Wheel stays in viewer · Alt+wheel to zoom</span>
           )}
         </div>
         <div className="naskh-viewer-controls">
@@ -190,7 +208,6 @@ export function DocumentViewer({
       <div
         ref={viewportRef}
         className={`naskh-viewer-viewport ${dragging || altPanning ? "naskh-viewer-viewport-grabbing" : "naskh-viewer-viewport-grabbable"}`}
-        onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
