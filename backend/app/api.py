@@ -1,45 +1,89 @@
 import json
 import logging
-import time
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 from app.config import get_settings
-from app.schemas import ChatAnswer, ChatRequest, ChatResponse, ProcessResponse, SourceRegion, UploadResponse
+from app.schemas import (
+    ChatRequest,
+    ChatResponse,
+    ExtractionUpdate,
+    ProcessResponse,
+    SampleInfo,
+    SourceRegion,
+    UploadResponse,
+)
 from app.services.ai import AiService
+from app.services.citations import resolve_citation_sources
 from app.services.documents import (
-    create_demo_document,
     image_data_urls,
     load_document,
     load_extraction,
-    load_sample_extraction,
     preview_url,
     save_extraction,
     store_upload,
 )
-from app.services.exports import write_docx, write_json
+from app.services.exports import write_csv, write_docx, write_json
 from app.services.rag import RagService
+from app.services.samples import list_samples, load_sample_document, sample_thumbnail_path
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
 
+def _require_api_key(settings) -> None:
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Set OPENAI_API_KEY in backend/.env to use live AI extraction and chat.",
+        )
+
+
 @router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict[str, str | bool]:
+    settings = get_settings()
+    return {"status": "ok", "ai_ready": bool(settings.openai_api_key)}
 
 
-@router.post("/documents/demo", response_model=UploadResponse)
-def load_demo_document() -> UploadResponse:
-    document = create_demo_document()
+@router.get("/samples", response_model=list[SampleInfo])
+def get_samples() -> list[SampleInfo]:
+    return list_samples()
+
+
+@router.get("/samples/{sample_id}/thumbnail")
+def get_sample_thumbnail(sample_id: str) -> FileResponse:
+    try:
+        path = sample_thumbnail_path(sample_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return FileResponse(path, media_type="image/png")
+
+
+@router.post("/samples/{sample_id}/load", response_model=UploadResponse)
+def load_sample(sample_id: str) -> UploadResponse:
+    settings = get_settings()
+    try:
+        document, extraction = load_sample_document(sample_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    if settings.openai_api_key:
+        RagService(settings).index_extraction(document.document_id, extraction)
+
     return UploadResponse(
         document_id=document.document_id,
         filename=document.filename,
         content_type=document.content_type,
         preview_urls=[preview_url(document.document_id, path) for path in document.preview_paths],
+        extraction=extraction,
     )
+
+
+@router.post("/documents/demo", response_model=UploadResponse)
+def load_demo_document() -> UploadResponse:
+    return load_sample("saudi-regulatory-circular")
 
 
 @router.post("/documents/upload", response_model=UploadResponse)
@@ -69,20 +113,13 @@ def get_preview(document_id: str, filename: str) -> FileResponse:
 @router.post("/documents/{document_id}/process", response_model=ProcessResponse)
 def process_document(document_id: str) -> ProcessResponse:
     settings = get_settings()
+    _require_api_key(settings)
     try:
         document = load_document(document_id)
-        if settings.openai_api_key:
-            ai = AiService(settings)
-            extraction = ai.extract_document(image_data_urls(document))
-        else:
-            extraction = load_sample_extraction()
-            extraction.notes = [
-                *extraction.notes,
-                "Demo fallback: set OPENAI_API_KEY in backend/.env to run live vision extraction.",
-            ]
+        ai = AiService(settings)
+        extraction = ai.extract_document(image_data_urls(document))
         save_extraction(document_id, extraction)
-        if settings.openai_api_key:
-            RagService(settings).index_extraction(document_id, extraction)
+        RagService(settings).index_extraction(document_id, extraction)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -91,16 +128,34 @@ def process_document(document_id: str) -> ProcessResponse:
     return ProcessResponse(document_id=document_id, extraction=extraction)
 
 
-@router.post("/documents/{document_id}/chat", response_model=ChatResponse)
-def chat(document_id: str, request: ChatRequest) -> ChatResponse:
+@router.patch("/documents/{document_id}/extraction", response_model=ProcessResponse)
+def patch_extraction(document_id: str, body: ExtractionUpdate) -> ProcessResponse:
     settings = get_settings()
     try:
         extraction = load_extraction(document_id)
+        if body.transcription is not None:
+            extraction.transcription = body.transcription
+        if body.fields is not None:
+            extraction.fields = body.fields
+        save_extraction(document_id, extraction)
         if settings.openai_api_key:
-            excerpts = RagService(settings).retrieve(document_id, request.question)
-            answer = AiService(settings).answer_question(request.question, excerpts)
-        else:
-            answer = _demo_chat_answer(request.question, extraction)
+            RagService(settings).index_extraction(document_id, extraction)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return ProcessResponse(document_id=document_id, extraction=extraction)
+
+
+@router.post("/documents/{document_id}/chat", response_model=ChatResponse)
+def chat(document_id: str, request: ChatRequest) -> ChatResponse:
+    settings = get_settings()
+    _require_api_key(settings)
+    try:
+        extraction = load_extraction(document_id)
+        excerpts = RagService(settings).retrieve(document_id, request.question)
+        answer = AiService(settings).answer_question(request.question, excerpts)
+        if not answer.source_snippets:
+            answer.source_snippets = resolve_citation_sources(extraction, excerpts)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -113,41 +168,23 @@ def _sse(payload: dict) -> str:
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
-def _clip_snippet(text: str, limit: int = 240) -> str:
-    text = text.strip()
-    return text if len(text) <= limit else text[:limit].rstrip() + "…"
-
-
-def _demo_token_stream(text: str):
-    words = text.split(" ")
-    for index, word in enumerate(words):
-        yield word if index == 0 else f" {word}"
-
-
 @router.post("/documents/{document_id}/chat/stream")
 def chat_stream(document_id: str, request: ChatRequest) -> StreamingResponse:
     settings = get_settings()
-    try:
-        extraction = load_extraction(document_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="Document extraction not found.") from exc
+    _require_api_key(settings)
 
     def event_stream():
         try:
-            if settings.openai_api_key:
-                excerpts = RagService(settings).retrieve(document_id, request.question)
-                sources = [SourceRegion(page=1, snippet=_clip_snippet(text)) for text in excerpts]
-                for token in AiService(settings).stream_answer_question(request.question, excerpts):
-                    yield _sse({"type": "token", "value": token})
-            else:
-                answer = _demo_chat_answer(request.question, extraction)
-                sources = answer.source_snippets
-                for token in _demo_token_stream(answer.answer):
-                    yield _sse({"type": "token", "value": token})
-                    time.sleep(0.02)
+            extraction = load_extraction(document_id)
+            excerpts = RagService(settings).retrieve(document_id, request.question)
+            sources = resolve_citation_sources(extraction, excerpts)
+            for token in AiService(settings).stream_answer_question(request.question, excerpts):
+                yield _sse({"type": "token", "value": token})
             yield _sse({"type": "sources", "value": [source.model_dump() for source in sources]})
             yield _sse({"type": "done"})
-        except Exception:  # noqa: BLE001 - never leak internals to the client
+        except FileNotFoundError:
+            yield _sse({"type": "error", "value": "Process the document before chatting."})
+        except Exception:  # noqa: BLE001
             logger.exception("Streaming chat failed for document %s", document_id)
             yield _sse({"type": "error", "value": "The assistant could not complete the answer."})
 
@@ -180,12 +217,12 @@ def export_json(document_id: str) -> FileResponse:
     return FileResponse(path, filename=f"naskh-{document_id}.json", media_type="application/json")
 
 
-def _demo_chat_answer(question: str, extraction) -> ChatAnswer:
-    question_lower = question.lower()
-    matched_field = next((field for field in extraction.fields if field.label.lower() in question_lower), extraction.fields[0])
-    if any(token in question_lower for token in ["title", "document", "عنوان", "تعميم"]):
-        matched_field = extraction.fields[0]
-    snippet = matched_field.source.snippet if matched_field else extraction.transcription.split("\n")[0]
-    answer = f"{matched_field.label}: {matched_field.value}" if matched_field else extraction.summary
-    source = matched_field.source if matched_field else SourceRegion(page=1, snippet=snippet)
-    return ChatAnswer(answer=answer, source_snippets=[source])
+@router.get("/documents/{document_id}/export/csv")
+def export_csv(document_id: str) -> FileResponse:
+    try:
+        extraction = load_extraction(document_id)
+        path = write_csv(document_id, extraction)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return FileResponse(path, filename=f"naskh-{document_id}.csv", media_type="text/csv")

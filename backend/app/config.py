@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "Naskh"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
+    openai_chat_model: str | None = None
     openai_embedding_model: str = "text-embedding-3-small"
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     data_dir: Path = Path("data")

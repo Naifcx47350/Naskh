@@ -12,6 +12,7 @@ from pypdf import PdfReader
 
 from app.config import get_settings
 from app.schemas import DocumentExtraction
+from app.services.arabic_text import load_arabic_font, shape_arabic
 
 
 SUPPORTED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
@@ -69,6 +70,13 @@ def _wrap_text(text: str, width: int = 58) -> list[str]:
     return lines or [text[:width]]
 
 
+def _draw_preview_line(draw: ImageDraw.ImageDraw, x: int, y: int, line: str, font) -> None:
+    if any("\u0600" <= char <= "\u06FF" for char in line):
+        draw.text((x, y), shape_arabic(line), font=font, fill=(23, 32, 51), anchor="ra")
+    else:
+        draw.text((x, y), line, font=font, fill=(23, 32, 51))
+
+
 def _pdf_text_preview(pdf_path: Path, destination: Path) -> None:
     reader = PdfReader(str(pdf_path))
     extracted = "\n\n".join((page.extract_text() or "").strip() for page in reader.pages[:2]).strip()
@@ -77,11 +85,12 @@ def _pdf_text_preview(pdf_path: Path, destination: Path) -> None:
 
     image = Image.new("RGB", (900, 1200), color=(251, 247, 239))
     draw = ImageDraw.Draw(image)
+    font = load_arabic_font(24)
     draw.rectangle((36, 36, 864, 1164), outline=(183, 114, 69), width=3)
     draw.text((56, 56), "Naskh PDF preview", fill=(23, 32, 51))
     y = 110
     for line in _wrap_text(extracted, width=72)[:28]:
-        draw.text((56, y), line, fill=(23, 32, 51))
+        _draw_preview_line(draw, 844, y, line, font)
         y += 34
     _write_preview(image, destination)
 
@@ -199,6 +208,7 @@ def create_demo_document() -> StoredDocument:
 
     image = Image.new("RGB", (900, 1200), color=(251, 247, 239))
     draw = ImageDraw.Draw(image)
+    font = load_arabic_font(32)
     draw.rectangle((36, 36, 864, 1164), outline=(183, 114, 69), width=3)
     arabic_lines = [
         "بسم الله الرحمن الرحيم",
@@ -207,7 +217,7 @@ def create_demo_document() -> StoredDocument:
     ]
     y = 120
     for line in arabic_lines:
-        draw.text((700, y), line, fill=(23, 32, 51), anchor="ra")
+        draw.text((844, y), shape_arabic(line), font=font, fill=(23, 32, 51), anchor="ra")
         y += 70
     _write_preview(image, preview_path)
 

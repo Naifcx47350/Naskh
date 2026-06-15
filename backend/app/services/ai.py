@@ -33,6 +33,10 @@ class AiService:
         self.settings = settings
         self.client = OpenAI(api_key=settings.openai_api_key)
 
+    @property
+    def chat_model(self) -> str:
+        return self.settings.openai_chat_model or self.settings.openai_model
+
     def extract_document(self, image_urls: list[str]) -> DocumentExtraction:
         content: list[dict] = [{"type": "input_text", "text": EXTRACTION_PROMPT}]
         content.extend({"type": "input_image", "image_url": image_url} for image_url in image_urls)
@@ -55,7 +59,7 @@ class AiService:
     def answer_question(self, question: str, excerpts: list[str]) -> ChatAnswer:
         context = "\n\n---\n\n".join(excerpts)
         response = self.client.responses.parse(
-            model=self.settings.openai_model,
+            model=self.chat_model,
             input=[
                 {"role": "system", "content": CHAT_PROMPT},
                 {
@@ -84,7 +88,7 @@ class AiService:
         """
         context = "\n\n---\n\n".join(excerpts)
         with self.client.responses.stream(
-            model=self.settings.openai_model,
+            model=self.chat_model,
             input=[
                 {"role": "system", "content": CHAT_STREAM_PROMPT},
                 {

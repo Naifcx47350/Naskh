@@ -39,6 +39,7 @@ class UploadResponse(BaseModel):
     filename: str
     content_type: str
     preview_urls: list[str]
+    extraction: DocumentExtraction | None = None
 
 
 class ProcessResponse(BaseModel):
@@ -53,3 +54,17 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     document_id: str
     answer: ChatAnswer
+
+
+class SampleInfo(BaseModel):
+    id: str
+    name: str
+    description: str
+    pitch_priority: int = 99
+    recommended_lead: bool = False
+    thumbnail_url: str
+
+
+class ExtractionUpdate(BaseModel):
+    transcription: str | None = None
+    fields: list[ExtractedField] | None = None
