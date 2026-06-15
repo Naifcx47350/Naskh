@@ -8,7 +8,7 @@ Last updated after the **final polish & wow pass** (sample gallery, citation hig
 | --- | --- | --- |
 | File upload (PDF, PNG, JPEG, WebP) | Done | Stored under `backend/data/uploads/` |
 | PDF/image preview generation | Done | pypdfium2 rasterization (Poppler optional); shaped text fallback only if rasterizers fail |
-| **Sample gallery (5 docs)** | Done | `backend/samples/` — offline prepared extractions + thumbnails |
+| **Sample gallery (5 docs)** | Done | Bundled PDFs, prepared extractions, and thumbnails under `backend/samples/` |
 | Demo sample shortcut | Done | `POST /api/documents/demo` loads `saudi-regulatory-circular` |
 | Vision extraction (OpenAI) | Done | Pydantic `DocumentExtraction` schema |
 | Polished UI / animations | Done | Design tokens, dark mode, deliberate ~350ms highlight motion |
@@ -26,7 +26,7 @@ Last updated after the **final polish & wow pass** (sample gallery, citation hig
 | Arabic RTL in DOCX export | Done | Branded header, fields table, `w:bidi` / `w:rtl` on Arabic runs |
 | **Branded exports** | Done | DOCX, full JSON, fields-only CSV |
 | **Skeleton loaders** | Done | Viewer + fields during processing (no bare spinners) |
-| **Keyboard shortcuts** | Done | `?`, Alt+T/A/P — see ShortcutsModal |
+| **Keyboard shortcuts** | Done | `?`, `Ctrl+K`, Alt+T/P — see ShortcutsModal |
 | **Accessibility / motion** | Done | Focus rings, ARIA on modals/FAB; `prefers-reduced-motion` disables big animations |
 | Demo fallback without API key | Done | Gallery + prepared extractions — full UI offline |
 | Auth / multi-user | Out of scope | — |
@@ -35,7 +35,7 @@ Last updated after the **final polish & wow pass** (sample gallery, citation hig
 
 ## Sample documents
 
-Canonical location: **`backend/samples/`** (not `data/samples/` — that path was never present in the repo).
+Prepared sample PDFs, extraction metadata, and thumbnails are committed under **`backend/samples/`**. Runtime uploads and generated document data still live under gitignored `backend/data/`.
 
 | ID | Name | Lead? | Notes |
 | --- | --- | --- | --- |
@@ -45,7 +45,7 @@ Canonical location: **`backend/samples/`** (not `data/samples/` — that path wa
 | `arabic-tax-invoice` | Arabic Tax Invoice | | **Avoid leading** — total amount at 0.58 confidence |
 | `board-resolution` | Board Resolution | | **Avoid leading** — effective date at 0.55 confidence |
 
-Each folder contains `extraction.json` + `preview.png`. Manifest: `backend/samples/manifest.json`.
+Each committed sample folder contains `extraction.json` + `preview.png`. Manifest: `backend/samples/manifest.json`.
 
 ## Verified flows
 
@@ -71,7 +71,7 @@ cd backend
 python -m pytest tests -v
 ```
 
-**10 tests** — all passing. Covers:
+**12 tests** — all passing. Covers:
 
 - Schema validation, export writers (DOCX, JSON, CSV)
 - RAG chunking, Arabic shaping
@@ -101,7 +101,7 @@ frontend/dist/
 __pycache__/
 ```
 
-**Committed for demo:** `backend/samples/**` (extractions, previews, manifest).
+**Committed for demo:** `backend/samples/**` (PDFs, extractions, previews, manifest).
 
 ## Environment naming note
 

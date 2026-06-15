@@ -14,12 +14,12 @@ The frontend is a presentation-first React app for the Naskh hackathon demo. It 
 
 ## Screen Flow
 
-1. Hero section explains the human-in-the-loop framing and the AI features.
-2. Drag-and-drop upload panel sends PDF/image files to the backend.
+1. Hero section explains the human-in-the-loop framing and AI features.
+2. Upload panel includes a compact prepared-sample strip.
 3. Split view shows the original preview on the left and digitized output on the right.
-4. Hovering extracted fields sends the source snippet back to the preview panel for a visible citation highlight.
-5. The floating assistant opens from the bottom-right and answers from the current processed document.
-6. Export buttons download `.docx` and JSON from backend endpoints.
+4. Hovering extracted fields highlights the precise source region when available.
+5. The floating assistant opens from the bottom-right (`Ctrl+K`) and answers from the current document when live AI is configured.
+6. Export buttons download DOCX, JSON, and CSV from backend endpoints.
 
 ## Visual System
 
@@ -27,7 +27,8 @@ The frontend is a presentation-first React app for the Naskh hackathon demo. It 
 - Cards use soft shadows, rounded corners, and translucent glass surfaces.
 - Arabic output renders with an Arabic-friendly font stack and switches to `dir="rtl"` when Arabic text is detected.
 - Processing state is animated so the UI never looks frozen during AI calls.
+- Document preview supports Alt+wheel zoom and viewer-contained wheel scrolling.
 
 ## Demo Priorities
 
-Keep the first document path flawless before adding extra document types. The most important visible moments are upload reveal, extraction processing animation, field-to-source highlight, and the assistant returning cited answers.
+Keep the first document path flawless before adding extra features. The most important visible moments are sample load, field-to-source highlight, review confidence, and assistant cited answers.

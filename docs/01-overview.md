@@ -18,24 +18,24 @@ Large volumes of Saudi regulatory and business documents still exist on paper or
 
 Naskh is **not** claiming perfect Arabic handwriting OCR. It is a **first-pass AI assistant** where an operator reviews, edits, and approves output before archiving. This is honest, demo-safe, and aligned with the hackathon brief.
 
-## MVP scope (in scope)
+## Prototype scope
 
 - Upload PDF or image (PNG/JPEG/WebP)
-- Server-side vision extraction via OpenAI structured outputs
-- Split-view UI: original preview + digitized output
-- Hover field → highlight cited source snippet
-- Floating document assistant with cited answers (RAG)
-- Export to `.docx` and JSON
-- Demo sample path when API key is missing or for stage reliability
+- Rasterize PDFs into faithful page previews without requiring Poppler
+- Load five prepared sample documents for an offline-safe demo path
+- Extract structured fields via server-side OpenAI structured outputs
+- Review confidence and jump from fields/citations to source highlights
+- Ask cited questions through the floating assistant when an API key is configured
+- Export DOCX, JSON, and CSV
 
-## Out of scope (do not build before demo)
+## Out of scope
 
 - User accounts, auth, payments
 - Government system integrations
 - Broad document-type support
 - Full production OCR pipeline or fine-tuned Arabic models
 
-## Judging alignment
+## Review alignment
 
 | Criterion | How Naskh addresses it |
 | --- | --- |
@@ -43,14 +43,14 @@ Naskh is **not** claiming perfect Arabic handwriting OCR. It is a **first-pass A
 | AI utilization | Vision extraction, structured outputs, Chroma RAG, cited chat |
 | Technical implementation | FastAPI + React, Pydantic schemas, real pipeline (not mocked UI) |
 | Creativity | Split-view sync highlight + embedded assistant bubble |
-| Demo quality | Polished UI, loading states, demo sample button |
+| Demo quality | Polished UI, sample gallery, loading states, cited source highlights |
 | Future vision | Fine-tuned Arabic model, scale, human review at volume |
 
-## Hero demo path (10-minute pitch)
+## Hero demo path
 
-1. Open app → click **Load demo sample**
-2. Click **Process document** → show structured fields + Arabic transcription
-3. Hover a field → source highlight on original panel
-4. Ask assistant: *What is the document title?* → cited answer + highlight
-5. Export DOCX or JSON
+1. Open app → choose a document from the sample strip
+2. Show structured fields, confidence, transcription, and insights
+3. Hover/click a field → source highlight on original preview
+4. If an API key is configured, ask the assistant a question → cited answer + highlight
+5. Export DOCX, JSON, or CSV
 6. Close with honest limitations + future vision

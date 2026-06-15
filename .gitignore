@@ -5,6 +5,9 @@ node_modules
 dist
 .venv
 .pytest_cache
+_archive/
+*.tsbuildinfo
+*.log
 
 __pycache__
 

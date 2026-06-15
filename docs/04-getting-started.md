@@ -110,18 +110,18 @@ python run_dev.py
 
 Hard refresh the browser: **Ctrl+F5**. After a clean restart, compiled CSS should be ~20–35 KB (Tailwind v3 utilities present).
 
-### PDF preview is text-only, not a scan image
+### PDF preview is text-only, not a raster image
 
-Poppler is not installed. Options:
+This should be rare. PDF previews use `pypdfium2` first, then PyMuPDF, then optional Poppler. If all rasterizers fail:
 
-- Install Poppler for Windows and ensure it is on `PATH`
-- Upload a PNG/JPEG photo instead for the demo
-- Accept the text-rendered fallback preview (upload still works)
+- Reinstall backend requirements: `pip install -r backend\requirements.txt`
+- Confirm `pypdfium2` or `PyMuPDF` imports in the active `IntelStack` environment
+- Use the sample gallery as a fallback demo path
 
 ### `Process document` fails
 
 - Check `backend/.env` has a valid `OPENAI_API_KEY`
-- Or use **Load demo sample** + process without a key
+- Or use the sample gallery, which loads prepared extractions without a key
 
 ### Port already in use
 

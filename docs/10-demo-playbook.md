@@ -49,11 +49,11 @@ Practice the gallery-only path once so you can switch without panic.
 
 > “Saudi organizations still have mountains of paper rules and contracts. Naskh is a human-in-the-loop assistant: AI does the first pass, your team reviews exactly what needs attention.”
 
-Show landing page — **sample gallery** front and center. Mention upload as secondary.
+Show the landing page and upload card. Mention that the compact sample strip below the uploader is the safe demo path.
 
 ### 2. One-click ingest (30 sec) — gallery wow #1
 
-Click **Regulatory Circular** card.
+Click **Regulatory Circular** in the sample strip.
 
 > “No upload spinner — we ship prepared business samples so the workflow is instant. In production, the same pipeline runs on live uploads.”
 
@@ -74,7 +74,7 @@ Point at **“X fields need review”** banner (if shown):
 
 ### 4. Hero moment (2 min) — ask → answer → highlight
 
-Open assistant (**Alt+A** or FAB). Tap a **suggested question chip**, e.g.:
+Open assistant (**Ctrl+K** or the circular bot button). Tap a **suggested question chip**, e.g.:
 
 - “What action is required?”
 - “Who issued this document?”
@@ -137,7 +137,7 @@ If time and API allow: drag a PNG onto upload → **Process document**.
 | Gallery empty / 500 | Confirm `backend/samples/` exists with 5 folders + manifest |
 | Process error on upload | Switch to gallery sample; narrate offline path |
 | Slow process | Narrate “vision model analyzing pages”; fall back to gallery |
-| PDF looks like text not scan | Mention Poppler optional; gallery uses PNG previews |
+| PDF looks like text not scan | Reinstall `pypdfium2` / `PyMuPDF`; Poppler is optional |
 | Chat empty / disabled | Need API key + processed/indexed doc; use gallery + suggested chips |
 | Highlight seems off | Snippet text match, not pixel OCR — honest positioning |
 | Wrong model quality | Set `OPENAI_MODEL=gpt-4o` in `.env`, restart backend |

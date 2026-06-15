@@ -121,7 +121,7 @@ Main container: `max-width: min(1600px, 94vw)` — uses most of the viewport on 
 Compact **strip below the upload zone** (`UploadZone` → `SampleGallery`):
 
 - Collapsed thumbnails by default; **hover expands** name + description
-- Loads real team PDFs from `data/samples/` via `POST /api/samples/{id}/load` (prepared extractions in `backend/samples/`)
+- Loads bundled PDFs and prepared extractions from `backend/samples/` via `POST /api/samples/{id}/load`
 
 ## Assistant panel
 
@@ -222,4 +222,4 @@ If the UI looks unstyled:
 3. Confirm compiled CSS is ~20–35 KB (not ~7 KB)
 4. Confirm `tailwindcss` is v3.4.x in `package.json`
 
-See also [11-implementation-changes.md](./11-implementation-changes.md) for changelogs.
+For the high-level product flow, see [10-demo-playbook.md](./10-demo-playbook.md).

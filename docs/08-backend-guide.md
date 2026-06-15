@@ -18,8 +18,10 @@ backend/
 │   ├── config.py            # Settings from .env
 │   ├── schemas.py           # Pydantic models (shared contract)
 │   └── services/
-│       ├── documents.py     # Upload, preview, metadata, demo
+│       ├── documents.py     # Upload, preview, metadata
 │       ├── pdf_preview.py   # PDF rasterization (pypdfium2 / PyMuPDF / Poppler)
+│       ├── pdf_layout.py    # PDF text-layer highlight coordinates
+│       ├── samples.py       # Prepared sample gallery loader
 │       ├── ai.py            # OpenAI extraction + chat
 │       ├── rag.py           # Chunk, embed, retrieve
 │       └── exports.py       # DOCX + JSON writers
@@ -62,8 +64,7 @@ Data directories are created automatically under `backend/data/`.
   - Images → normalize with Pillow
   - PDF → rasterize every page with `pypdfium2` (primary), `PyMuPDF`, or `pdf2image` if Poppler is present; last-resort shaped Arabic text pages if all rasterizers fail
   - Metadata includes `preview_mode`: `raster` or `text`
-- `create_demo_document()` — copies bundled sample into uploads
-- `load_sample_extraction()` — demo JSON for no-key mode
+- PDF metadata includes `preview_mode`: `raster` or `text`
 
 ### `ai.py`
 
@@ -86,19 +87,20 @@ Data directories are created automatically under `backend/data/`.
 
 Central orchestration:
 
-1. Upload/demo → `store_upload` / `create_demo_document`
-2. Process → `AiService.extract_document` or sample fallback → `save_extraction` → optional `RagService.index_extraction`
-3. Chat → `RagService.retrieve` + `AiService.answer_question` or `_demo_chat_answer`
+1. Upload/sample → `store_upload` / `load_sample_document`
+2. Process → `AiService.extract_document` → `save_extraction` → `RagService.index_extraction`
+3. Chat → `RagService.retrieve` + `AiService.answer_question`
 4. Export → load extraction, write file, `FileResponse`
 
-## Demo fallback logic
+## Prepared sample path
 
-When `OPENAI_API_KEY` is missing:
+The sample gallery is the offline-safe path:
 
-- **Process:** Uses `tests/fixtures/sample_extraction.json` and appends a note in `extraction.notes`
-- **Chat:** `_demo_chat_answer()` matches question keywords to extraction fields
+- `GET /api/samples` lists sample metadata
+- `POST /api/samples/{sample_id}/load` copies the sample PDF preview/extraction into local runtime storage
+- Live extraction and assistant chat still require `OPENAI_API_KEY`
 
-This keeps the frontend fully functional for UI demos and CI without secrets.
+This keeps the review workflow demoable without secrets while avoiding fake AI responses.
 
 ## Tests
 

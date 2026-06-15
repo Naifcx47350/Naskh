@@ -33,7 +33,8 @@ Upload a PDF or image.
   "document_id": "abc123...",
   "filename": "contract.pdf",
   "content_type": "application/pdf",
-  "preview_urls": ["/api/documents/abc123.../previews/page-1.png"]
+  "preview_urls": ["/api/documents/abc123.../previews/page-1.png"],
+  "preview_mode": "raster"
 }
 ```
 
@@ -43,7 +44,7 @@ Upload a PDF or image.
 
 ### `POST /api/documents/demo`
 
-Create a demo document from bundled sample assets (no upload required).
+Load the recommended prepared sample document.
 
 **Response:** Same shape as upload.
 
@@ -54,6 +55,22 @@ Create a demo document from bundled sample assets (no upload required).
 Returns PNG preview image bytes.
 
 **Errors:** `404` — document or preview not found
+
+---
+
+## Samples
+
+### `GET /api/samples`
+
+Returns the prepared sample gallery metadata.
+
+### `GET /api/samples/{sample_id}/thumbnail`
+
+Returns a sample thumbnail PNG.
+
+### `POST /api/samples/{sample_id}/load`
+
+Loads a prepared sample document and extraction. This path does not require an OpenAI key.
 
 ---
 
@@ -76,7 +93,11 @@ Run vision extraction on document previews.
         "label": "Document title",
         "value": "...",
         "field_type": "title",
-        "source": { "page": 1, "snippet": "..." },
+        "source": {
+          "page": 1,
+          "snippet": "...",
+          "region": { "x": 0.1, "y": 0.2, "width": 0.3, "height": 0.05, "approximate": false }
+        },
         "confidence": 0.92
       }
     ],
@@ -85,10 +106,7 @@ Run vision extraction on document previews.
 }
 ```
 
-**Behavior:**
-
-- With `OPENAI_API_KEY`: live OpenAI vision extraction + Chroma indexing
-- Without key: loads `backend/tests/fixtures/sample_extraction.json`
+Requires `OPENAI_API_KEY`; prepared samples are the offline path.
 
 **Errors:** `404` document not found, `400` processing error
 
@@ -120,10 +138,10 @@ Ask a question about the processed document.
 
 **Behavior:**
 
-- With API key: RAG retrieval + structured chat answer
-- Without key: `_demo_chat_answer()` keyword matching on extraction fields
+- Requires `OPENAI_API_KEY`
+- Uses RAG retrieval + structured chat answer
 
-**Prerequisite:** Document must be processed first (`extraction` saved in metadata).
+**Prerequisite:** Document must have a saved extraction (prepared sample or processed upload).
 
 ---
 

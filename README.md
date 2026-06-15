@@ -1,16 +1,25 @@
-# IntelliStack / Naskh
+# Naskh
 
-Naskh is a hackathon MVP for human-in-the-loop document intelligence. It uploads a PDF or document photo, sends page previews to a server-side OpenAI vision model for structured extraction and Arabic transcription, indexes the result in ChromaDB, and exposes a floating document assistant with cited answers.
+Naskh is a human-in-the-loop document intelligence prototype for Arabic and bilingual business documents. It turns PDFs or document photos into structured fields, editable transcription, cited source highlights, and exportable review artifacts.
 
-## Documentation
+The project is intentionally scoped as an honest first-pass assistant: AI extracts and cites, while a human reviews low-confidence fields before export.
 
-Full team docs live in **[docs/](./docs/README.md)** — architecture, tech stack, API reference, current state, roadmap, and demo playbook.
+## Highlights
+
+- PDF and image upload with faithful PDF page previews (`pypdfium2`, PyMuPDF fallback)
+- Five bundled sample PDFs with prepared extractions for a reliable offline demo path
+- Structured extraction with confidence and review indicators
+- Source-linked document viewer with field/citation highlights
+- Floating document assistant with cited answers when an OpenAI key is configured
+- Exports: DOCX, JSON, and CSV
+- Dark mode, responsive layout, keyboard shortcuts, and reduced-motion support
 
 ## Stack
 
-- Backend: FastAPI, OpenAI Python SDK, Pydantic structured outputs, ChromaDB, Pillow, pdf2image, python-docx.
-- Frontend: React, Vite, Tailwind CSS.
-- AI keys stay on the backend. The browser only calls the FastAPI REST API.
+- Backend: FastAPI, OpenAI Python SDK, Pydantic, ChromaDB, Pillow, pypdfium2, PyMuPDF, python-docx
+- Frontend: React, Vite, TypeScript, Tailwind CSS v3.4, Framer Motion
+- Storage: local files under `backend/data/` (gitignored)
+- Security: OpenAI keys stay server-side in `backend/.env`
 
 ## Quick Start
 
@@ -35,17 +44,15 @@ conda activate IntelStack
 
 If you already started the backend manually from `backend/`, return to the project root and run `python run_dev.py`; it will reuse the running backend and start the missing frontend.
 
-## Manual Backend Setup
+Open the UI at `http://127.0.0.1:5173/`. The API runs at `http://127.0.0.1:8000/`.
+
+## Configuration
+
+Copy `backend/.env.example` to `backend/.env`:
 
 ```powershell
-cd backend
-conda activate IntelStack
-pip install -r requirements.txt
-Copy-Item .env.example .env
-uvicorn app.main:app --reload
+Copy-Item backend\.env.example backend\.env
 ```
-
-Manual backend setup only starts the API on `http://127.0.0.1:8000/`. The actual app UI is the Vite frontend on `http://127.0.0.1:5173/`.
 
 Set these values in `backend/.env`:
 
@@ -56,34 +63,29 @@ OPENAI_CHAT_MODEL=
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
-Default model is `gpt-4o-mini` to control cost during development. Switch to `OPENAI_MODEL=gpt-4o` for final rehearsal or live demo when extraction quality matters more. Avoid `3.5` for the main extraction path because it does not cover the image understanding requirement.
+`OPENAI_API_KEY` is required for live extraction and assistant chat. The sample gallery loads prepared extractions without a key.
 
-PDF preview conversion uses `pdf2image`, which requires Poppler on Windows. For the fastest demo path, upload a clear PNG/JPEG photo if Poppler is not installed.
-
-## Frontend Setup
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-Optional frontend environment:
-
-```env
-VITE_API_BASE=http://localhost:8000
-```
+Default model is `gpt-4o-mini` to control cost. Use `gpt-4o` for a final quality rehearsal if needed.
 
 ## Demo Flow
 
-1. Pick a document from the **sample gallery** on the landing page (5 business samples — works offline, no API key).
-2. Or upload a PDF/PNG/JPEG, then click **Process document** (requires `OPENAI_API_KEY`).
-3. Review the insights strip and flagged fields; hover or click to sync highlights on the document viewer.
-4. Open the assistant, tap a suggested question, then **Jump to source** on cited answers (requires API key).
+1. Start the app with `python run_dev.py`.
+2. Pick a bundled document from the sample strip below the upload zone.
+3. Review fields, confidence badges, and source highlights.
+4. Open the assistant with `Ctrl+K` and ask a question if an API key is configured.
 5. Export DOCX, JSON, or CSV.
 
-Full script: [docs/10-demo-playbook.md](./docs/10-demo-playbook.md). Sample assets live in `backend/samples/`.
+For live AI, upload a PDF/PNG/JPEG and click **Process with AI**. Bundled samples load prepared extractions without calling OpenAI.
+
+## Useful Docs
+
+- [Architecture](./docs/02-architecture.md)
+- [Tech stack](./docs/03-tech-stack.md)
+- [API reference](./docs/06-api-reference.md)
+- [Frontend guide](./docs/07-frontend-guide.md)
+- [Backend guide](./docs/08-backend-guide.md)
+- [Demo playbook](./docs/10-demo-playbook.md)
 
 ## Scope Notes
 
-This project intentionally does not add auth, accounts, payments, government integrations, or broad document-type support. It frames Arabic handwriting as an AI first pass with human review rather than a fully solved OCR system.
+This prototype does not include auth, accounts, payments, government integrations, or production OCR guarantees. It frames Arabic handwriting and scan extraction as an AI first pass with human review.
