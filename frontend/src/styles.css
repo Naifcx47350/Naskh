@@ -90,13 +90,9 @@
   }
 
   .naskh-container {
-    @apply relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8;
+    @apply relative mx-auto w-full px-4 py-8 sm:px-6 lg:px-8;
+    max-width: min(1600px, 94vw);
     padding-bottom: 6rem;
-    transition: padding-right 0.3s ease;
-  }
-
-  .naskh-container-assistant-open {
-    @apply lg:pr-[min(26rem,calc(100vw-2rem))];
   }
 
   .naskh-card {
@@ -367,12 +363,35 @@
     border: 1px solid var(--paper-border);
   }
 
+  .naskh-viewer-viewport-grabbable {
+    cursor: grab;
+  }
+
+  .naskh-viewer-viewport-grabbing {
+    cursor: grabbing;
+  }
+
+  .naskh-viewer-transform {
+    @apply inline-block p-6;
+  }
+
+  .naskh-viewer-page {
+    @apply relative inline-block;
+  }
+
   .naskh-viewer-canvas {
     @apply relative mx-auto flex w-fit origin-center items-center justify-center p-6;
   }
 
   .naskh-viewer-image {
-    @apply max-h-[520px] w-auto rounded-lg;
+    @apply block rounded-lg;
+    max-height: min(72vh, 680px);
+    max-width: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    margin-inline: auto;
     box-shadow: 0 12px 40px rgba(23, 32, 51, 0.18);
     transition: box-shadow 0.3s ease;
   }
@@ -446,7 +465,7 @@
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
-    z-index: 60;
+    z-index: 80;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -465,8 +484,25 @@
     max-height: min(70vh, 560px);
     border: 1px solid var(--border);
     background: var(--surface);
-    box-shadow: var(--shadow-card);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.2);
     pointer-events: auto;
+  }
+
+  .naskh-chat-close {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+
+  .naskh-chat-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .naskh-chat-kbd-hint {
+    @apply hidden shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold sm:inline;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
   }
 
   .naskh-chat-header {
@@ -527,10 +563,10 @@
   }
 
   .naskh-assistant-fab {
-    @apply inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold transition duration-200;
+    @apply inline-flex h-14 w-14 items-center justify-center rounded-full transition duration-200;
     background: var(--primary);
     color: var(--bg-elevated);
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), var(--shadow-glow);
     border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
     pointer-events: auto;
   }
@@ -566,9 +602,84 @@
   }
 
   .naskh-viewer-highlight-positioned {
-    left: 8%;
-    right: 8%;
     inset: auto;
+    min-height: 1.5rem;
+  }
+
+  .naskh-viewer-highlight-approx {
+    border-style: dashed;
+    opacity: 0.85;
+  }
+
+  .naskh-viewer-passage-overlay {
+    @apply absolute left-0 right-0 z-10 mx-auto block max-w-[min(280px,90%)] rounded-lg px-2.5 py-1.5 text-xs leading-snug shadow-lg;
+    top: calc(100% + 6px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    pointer-events: none;
+  }
+
+  .naskh-sample-strip-label {
+    @apply mb-2 text-xs font-semibold uppercase tracking-wide;
+    color: var(--text-muted);
+  }
+
+  .naskh-sample-strip-row {
+    @apply flex gap-2 overflow-x-auto pb-1;
+  }
+
+  .naskh-sample-strip-card {
+    @apply flex shrink-0 items-stretch overflow-hidden rounded-xl text-left transition-all duration-200;
+    width: 4.5rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .naskh-sample-strip-card:hover:not(:disabled) {
+    width: 13.5rem;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .naskh-sample-strip-card-loading {
+    opacity: 0.55;
+  }
+
+  .naskh-sample-strip-thumb-wrap {
+    @apply relative shrink-0 overflow-hidden;
+    width: 4.5rem;
+    background: var(--paper);
+    border-right: 1px solid var(--border);
+  }
+
+  .naskh-sample-strip-thumb {
+    @apply h-16 w-full object-cover object-top;
+  }
+
+  .naskh-sample-strip-badge {
+    @apply absolute left-1 top-1 inline-flex h-4 w-4 items-center justify-center rounded-full;
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .naskh-sample-strip-meta {
+    @apply flex min-w-0 flex-col justify-center overflow-hidden px-0 opacity-0 transition-all duration-200;
+    width: 0;
+  }
+
+  .naskh-sample-strip-card:hover .naskh-sample-strip-meta {
+    @apply px-2 opacity-100;
+    width: 9rem;
+  }
+
+  .naskh-sample-strip-name {
+    @apply truncate text-sm font-semibold;
+  }
+
+  .naskh-sample-strip-desc {
+    @apply mt-0.5 line-clamp-2 text-[11px] leading-4;
+    color: var(--text-muted);
   }
 
   .naskh-insights {

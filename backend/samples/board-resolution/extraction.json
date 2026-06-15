@@ -8,28 +8,68 @@
       "label": "Company",
       "value": "شركة أفق للتقنية",
       "field_type": "party",
-      "source": { "page": 1, "snippet": "شركة أفق للتقنية" },
+      "source": {
+        "page": 1,
+        "snippet": "شركة أفق للتقنية",
+        "region": {
+          "x": 0.04,
+          "y": 0.04,
+          "width": 0.92,
+          "height": 0.06,
+          "approximate": true
+        }
+      },
       "confidence": 0.92
     },
     {
       "label": "Resolution number",
       "value": "2025/04",
       "field_type": "reference",
-      "source": { "page": 1, "snippet": "قرار رقم 2025/04" },
+      "source": {
+        "page": 1,
+        "snippet": "قرار رقم 2025/04",
+        "region": {
+          "x": 0.48826391687886644,
+          "y": 0.4528606158746113,
+          "width": 0.023472166242267112,
+          "height": 0.025084837940592724,
+          "approximate": true
+        }
+      },
       "confidence": 0.88
     },
     {
       "label": "Appointment",
       "value": "تعيين خالد العتيبي CFO",
       "field_type": "clause",
-      "source": { "page": 1, "snippet": "تعيين الأستاذ خالد العتيبي Chief Financial Officer" },
+      "source": {
+        "page": 1,
+        "snippet": "تعيين الأستاذ خالد العتيبي Chief Financial Officer",
+        "region": {
+          "x": 0.04,
+          "y": 0.04,
+          "width": 0.92,
+          "height": 0.06,
+          "approximate": true
+        }
+      },
       "confidence": 0.79
     },
     {
       "label": "Effective date",
       "value": "2025/03/01",
       "field_type": "date",
-      "source": { "page": 1, "snippet": "اعتباراً من 2025/03/01" },
+      "source": {
+        "page": 1,
+        "snippet": "اعتباراً من 2025/03/01",
+        "region": {
+          "x": 0.48826391687886644,
+          "y": 0.3970338299384305,
+          "width": 0.023472166242267112,
+          "height": 0.025084837940592724,
+          "approximate": true
+        }
+      },
       "confidence": 0.55
     }
   ],

@@ -98,21 +98,37 @@ Key routes used by the UI:
 | Error | Toast notification (top center) |
 | Assistant | FAB bottom-right; closed by default; suggested question chips when empty |
 
+## Layout
+
+Main container: `max-width: min(1600px, 94vw)` — uses most of the viewport on desktop with modest gutters. Split view remains two columns on `lg+`, stacks on mobile.
+
 ## Document viewer & citation loop
 
 `DocumentViewer.tsx` renders `preview_urls` with:
 
-- Zoom in/out (50%–250%)
+- Zoom in/out (50%–250%) plus **Alt+wheel zoom at cursor** over the preview
+- **Pan** when zoomed: click-drag, or Alt+mousemove to sweep; normal scroll when Alt is not held
 - Multi-page navigation
-- Info strip: document kind, language, page count
-- **Positioned highlight** — `documentIntel.ts` locates citation snippet text; viewer scrolls/zooms (~350ms unless reduced motion)
-- **Bidirectional sync:**
-  - Hover/click field → highlight on document
-  - Click citation / “Jump to source” in chat → highlight + emphasize field
-  - Click highlight overlay → focus related field in list
-- Honest empty state when answer has no `source_snippets`
+- **PDF-accurate highlights** — `source.region` normalized boxes from PyMuPDF text search (`backend/app/services/pdf_layout.py`); no center-page fallback for PDFs
+- **Cited passage overlay** — snippet text floats on the highlight box (not a separate block below the viewer)
+- **Bidirectional sync:** field hover/click ↔ chat citation ↔ highlight click
+- Approximate highlights (dashed) only when text cannot be located or for image uploads
 
-`useReducedMotion()` disables large scroll/zoom animations when `prefers-reduced-motion: reduce`.
+`resolveHighlightRegion()` in `documentIntel.ts` reads `field.source.region` first, then transcription-ratio fallback for images.
+
+## Sample gallery
+
+Compact **strip below the upload zone** (`UploadZone` → `SampleGallery`):
+
+- Collapsed thumbnails by default; **hover expands** name + description
+- Loads real team PDFs from `data/samples/` via `POST /api/samples/{id}/load` (prepared extractions in `backend/samples/`)
+
+## Assistant panel
+
+- **Circular Bot FAB** (~56px) bottom-right — does **not** shrink main content (overlay only, `z-index: 80`)
+- Panel closes via × on header; FAB still toggles
+- **Ctrl+K** opens and focuses input (Alt+1 blocked by browsers; Alt+A fallback)
+- Mobile: bottom sheet + backdrop unchanged
 
 ## Insights strip
 
@@ -136,8 +152,8 @@ Threshold and labels live in `lib/documentIntel.ts` (High / Moderate / Review re
 
 ## Assistant panel
 
-- Fixed anchor: bottom-right, `width: min(380px, calc(100vw - 2rem))`
-- Closed by default; **Alt+A** toggles
+- Fixed overlay: bottom-right; **no layout reflow** when open
+- Closed by default; **Ctrl+K** focuses input (**Alt+A** fallback)
 - Enabled when extraction exists **and** `ai_ready` from `/api/health`
 - **Suggested question chips** in empty state — tap to send
 - Streaming chat via SSE `/chat/stream`
@@ -155,8 +171,9 @@ Press **?** anywhere (except inputs) for the modal. Defaults:
 | Shortcut | Action |
 | --- | --- |
 | `?` | Show shortcuts |
+| `Ctrl+K` | Open / focus assistant |
 | `Alt+T` | Toggle theme |
-| `Alt+A` | Toggle assistant |
+| `Alt+A` | Toggle assistant (fallback) |
 | `Alt+P` | Process document |
 
 Implemented in `hooks/useKeyboardShortcuts.ts` + `ShortcutsModal.tsx`.

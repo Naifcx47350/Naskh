@@ -8,7 +8,8 @@ export function ShortcutsModal({ open, onClose }: { open: boolean; onClose: () =
         <ul className="mt-4 space-y-2 text-sm">
           <li><kbd>?</kbd> Show shortcuts</li>
           <li><kbd>Alt</kbd> + <kbd>T</kbd> Toggle theme</li>
-          <li><kbd>Alt</kbd> + <kbd>A</kbd> Toggle assistant</li>
+          <li><kbd>Ctrl</kbd> + <kbd>K</kbd> Toggle assistant</li>
+          <li><kbd>Alt</kbd> + <kbd>A</kbd> Toggle assistant (fallback)</li>
           <li><kbd>Alt</kbd> + <kbd>P</kbd> Process document</li>
         </ul>
         <button type="button" className="naskh-btn-primary mt-5 w-full" onClick={onClose}>Close</button>

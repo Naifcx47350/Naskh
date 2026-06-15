@@ -1,4 +1,4 @@
-import type { DocumentExtraction, ExtractedField } from "../types";
+import type { DocumentExtraction, ExtractedField, NormalizedRegion } from "../types";
 
 const REVIEW_THRESHOLD = 0.65;
 
@@ -44,6 +44,55 @@ export function matchFieldBySnippet(fields: ExtractedField[], snippet: string): 
     }
   });
   return bestScore >= 0.25 ? bestIndex : null;
+}
+
+export function resolveHighlightRegion(
+  extraction: DocumentExtraction | null,
+  activeFieldIndex: number | null,
+  activeSnippet: string | null,
+  pageIndex: number,
+): NormalizedRegion | null {
+  if (!extraction) return null;
+  const pageNumber = pageIndex + 1;
+
+  let field: ExtractedField | undefined;
+  if (activeFieldIndex != null) {
+    field = extraction.fields[activeFieldIndex];
+  } else if (activeSnippet) {
+    const index = matchFieldBySnippet(extraction.fields, activeSnippet);
+    if (index != null) field = extraction.fields[index];
+  }
+
+  if (field && field.source.page === pageNumber && field.source.region) {
+    return field.source.region;
+  }
+
+  if (activeSnippet && !field) {
+    for (const candidate of extraction.fields) {
+      if (candidate.source.page !== pageNumber || !candidate.source.region) continue;
+      if (
+        normalizeText(candidate.source.snippet).includes(normalizeText(activeSnippet)) ||
+        normalizeText(activeSnippet).includes(normalizeText(candidate.source.snippet))
+      ) {
+        return candidate.source.region;
+      }
+    }
+  }
+
+  if (activeSnippet) {
+    const ratio = snippetVerticalRatio(extraction.transcription, activeSnippet);
+    if (ratio != null) {
+      return {
+        x: 0.06,
+        y: Math.max(0.02, ratio - 0.04),
+        width: 0.88,
+        height: 0.08,
+        approximate: true,
+      };
+    }
+  }
+
+  return null;
 }
 
 export function snippetVerticalRatio(transcription: string, snippet: string): number | null {

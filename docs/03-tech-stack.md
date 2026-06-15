@@ -25,9 +25,11 @@ From `backend/requirements.txt`:
 | `python-multipart` | File upload parsing |
 | `openai` | Vision extraction, chat, embeddings |
 | `pydantic-settings` | Config from `.env` |
-| `Pillow` | Image normalization and preview fallback |
-| `pypdf` | PDF text extraction when Poppler unavailable |
-| `pdf2image` | High-quality PDF → PNG (requires Poppler) |
+| `Pillow` | Image normalization and last-resort text preview pages |
+| `pypdf` | PDF text extraction for last-resort text preview only |
+| `pypdfium2` | Primary PDF page rasterization (no system deps) |
+| `PyMuPDF` | Fallback PDF page rasterization |
+| `pdf2image` | Optional PDF → PNG when Poppler is installed |
 | `python-docx` | DOCX export |
 | `chromadb` | Per-document RAG index |
 | `arabic-reshaper` + `python-bidi` | RTL shaping for exports (available, not yet wired in UI) |
@@ -77,10 +79,10 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 | Dependency | When needed |
 | --- | --- |
-| Poppler | Best PDF preview quality via `pdf2image` on Windows |
+| Poppler | Optional higher-quality PDF previews via `pdf2image` |
 | Conda | Recommended env management per `environment.yml` |
 
-Without Poppler, PDF uploads still work using the `pypdf` + Pillow text preview fallback.
+PDF previews rasterize the real page with **pypdfium2** (or PyMuPDF / Poppler as fallbacks). No Poppler install is required on Windows.
 
 ## What is intentionally not in the stack
 

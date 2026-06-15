@@ -3,35 +3,40 @@
     {
       "id": "saudi-regulatory-circular",
       "name": "Regulatory Circular",
-      "description": "Handwritten Arabic memo — title, issuing body, required action",
+      "description": "GADA regulatory circular — classification, storage, compliance deadline",
+      "pdf_file": "02_Regulatory_Circular.pdf",
       "pitch_priority": 1,
       "recommended_lead": true
     },
     {
       "id": "commercial-agreement",
-      "name": "Commercial Agreement",
-      "description": "Printed contract — parties, effective date, payment terms",
+      "name": "Services Agreement",
+      "description": "Bilingual contract — parties, value, confidentiality, governing law",
+      "pdf_file": "01_Services_Agreement.pdf",
       "pitch_priority": 2,
       "recommended_lead": false
     },
     {
       "id": "arabic-tax-invoice",
-      "name": "Arabic Tax Invoice",
+      "name": "Tax Invoice",
       "description": "VAT invoice — seller, buyer, amount, tax ID",
+      "pdf_file": "03_Tax_Invoice.pdf",
       "pitch_priority": 3,
       "recommended_lead": false
     },
     {
       "id": "compliance-notice",
-      "name": "Compliance Notice",
-      "description": "Bilingual policy notice — deadline and obligations",
+      "name": "Memorandum of Understanding",
+      "description": "MOU — parties, purpose, term, obligations",
+      "pdf_file": "04_Memorandum_of_Understanding.pdf",
       "pitch_priority": 4,
       "recommended_lead": false
     },
     {
       "id": "board-resolution",
       "name": "Board Resolution",
-      "description": "Arabic board minutes — decision, signatories, date",
+      "description": "Board minutes — decision, signatories, effective date",
+      "pdf_file": "05_Board_Resolution.pdf",
       "pitch_priority": 5,
       "recommended_lead": false
     }

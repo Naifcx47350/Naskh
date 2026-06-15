@@ -25,6 +25,7 @@ from app.services.documents import (
     store_upload,
 )
 from app.services.exports import write_csv, write_docx, write_json
+from app.services.pdf_layout import enrich_extraction_regions
 from app.services.rag import RagService
 from app.services.samples import list_samples, load_sample_document, sample_thumbnail_path
 
@@ -77,6 +78,7 @@ def load_sample(sample_id: str) -> UploadResponse:
         filename=document.filename,
         content_type=document.content_type,
         preview_urls=[preview_url(document.document_id, path) for path in document.preview_paths],
+        preview_mode=document.preview_mode,
         extraction=extraction,
     )
 
@@ -98,6 +100,7 @@ async def upload_document(file: UploadFile = File(...)) -> UploadResponse:
         filename=document.filename,
         content_type=document.content_type,
         preview_urls=[preview_url(document.document_id, path) for path in document.preview_paths],
+        preview_mode=document.preview_mode,
     )
 
 
@@ -118,6 +121,8 @@ def process_document(document_id: str) -> ProcessResponse:
         document = load_document(document_id)
         ai = AiService(settings)
         extraction = ai.extract_document(image_data_urls(document))
+        if document.content_type == "application/pdf":
+            extraction = enrich_extraction_regions(extraction, document.original_path)
         save_extraction(document_id, extraction)
         RagService(settings).index_extraction(document_id, extraction)
     except FileNotFoundError as exc:

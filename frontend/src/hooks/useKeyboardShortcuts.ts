@@ -23,6 +23,10 @@ export function useKeyboardShortcuts(handlers: Handlers, enabled = true) {
         event.preventDefault();
         handlers.onToggleTheme?.();
       }
+      if (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        handlers.onToggleAssistant?.();
+      }
       if (event.key.toLowerCase() === "a" && event.altKey) {
         event.preventDefault();
         handlers.onToggleAssistant?.();

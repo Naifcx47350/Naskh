@@ -8,28 +8,68 @@
       "label": "Seller",
       "value": "مؤسسة مستلزمات الرياض للتجارة",
       "field_type": "party",
-      "source": { "page": 1, "snippet": "مؤسسة مستلزمات الرياض للتجارة" },
+      "source": {
+        "page": 1,
+        "snippet": "مؤسسة مستلزمات الرياض للتجارة",
+        "region": {
+          "x": 0.0982577123745065,
+          "y": 0.34180808701359955,
+          "width": 0.022454152032273154,
+          "height": 0.02974934639608364,
+          "approximate": true
+        }
+      },
       "confidence": 0.93
     },
     {
       "label": "Buyer",
       "value": "شركة نجد للاستشارات",
       "field_type": "party",
-      "source": { "page": 1, "snippet": "العميل: شركة نجد للاستشارات" },
+      "source": {
+        "page": 1,
+        "snippet": "العميل: شركة نجد للاستشارات",
+        "region": {
+          "x": 0.0982577123745065,
+          "y": 0.34180808701359955,
+          "width": 0.022454152032273154,
+          "height": 0.02974934639608364,
+          "approximate": true
+        }
+      },
       "confidence": 0.89
     },
     {
       "label": "Tax ID",
       "value": "310123456700003",
       "field_type": "reference",
-      "source": { "page": 1, "snippet": "الرقم الضريبي: 310123456700003" },
+      "source": {
+        "page": 1,
+        "snippet": "الرقم الضريبي: 310123456700003",
+        "region": {
+          "x": 0.0982577123745065,
+          "y": 0.34180808701359955,
+          "width": 0.022454152032273154,
+          "height": 0.02974934639608364,
+          "approximate": true
+        }
+      },
       "confidence": 0.86
     },
     {
       "label": "Total with VAT",
       "value": "14,375.00 ر.س",
       "field_type": "amount",
-      "source": { "page": 1, "snippet": "الإجمالي شامل الضريبة: 14,375.00 ر.س" },
+      "source": {
+        "page": 1,
+        "snippet": "الإجمالي شامل الضريبة: 14,375.00 ر.س",
+        "region": {
+          "x": 0.0982577123745065,
+          "y": 0.34180808701359955,
+          "width": 0.022454152032273154,
+          "height": 0.02974934639608364,
+          "approximate": true
+        }
+      },
       "confidence": 0.58
     }
   ],

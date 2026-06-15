@@ -1,47 +1,131 @@
 {
-  "document_kind": "Commercial services agreement",
-  "language": "English",
-  "summary": "Printed agreement between Al Noor Trading LLC and Gulf Logistics for warehouse services starting March 2025.",
-  "transcription": "COMMERCIAL SERVICES AGREEMENT\n\nThis Agreement is entered into on 1 March 2025 between Al Noor Trading LLC (\"Client\") and Gulf Logistics W.L.L. (\"Provider\").\n\nScope: Provider shall operate warehouse and fulfillment services at the Riyadh DC.\n\nTerm: Twelve (12) months from the Effective Date.\n\nPayment: SAR 48,000 per month, net 30 days.",
+  "document_kind": "Professional Services Agreement",
+  "language": "Arabic/English",
+  "summary": "Bilingual services agreement between Digital Horizon Technology Solutions Co. and Najd Logistics & Supply Chain Co. for a cloud fleet-tracking platform valued at SAR 480,000.",
+  "transcription": "Ref. No: DH-AGR-2026-0184\nDate: 11 February 2026\n\nProfessional Services Agreement\n\nThis Professional Services Agreement is entered into and made effective as of 1 March 2026 by and between Digital Horizon Technology Solutions Co. (First Party) and Najd Logistics & Supply Chain Co. (Second Party).\n\nScope of Services: cloud-based fleet-tracking platform including data migration and staff training.\n\nContract Value: SAR 480,000 exclusive of VAT.\n\nTerm: twelve (12) months from the Effective Date.\n\nConfidentiality and Governing Law: Saudi Arabia, competent courts in Riyadh.",
   "fields": [
     {
-      "label": "Effective date",
-      "value": "1 March 2025",
+      "label": "Reference Number",
+      "value": "DH-AGR-2026-0184",
+      "field_type": "reference",
+      "source": {
+        "page": 1,
+        "snippet": "DH-AGR-2026-0184",
+        "region": {
+          "x": 0.6737548353095639,
+          "y": 0.09036660419289577,
+          "width": 0.16184842912356665,
+          "height": 0.032881586660752776,
+          "approximate": false
+        }
+      },
+      "confidence": 0.93
+    },
+    {
+      "label": "Date",
+      "value": "11 February 2026",
       "field_type": "date",
-      "source": { "page": 1, "snippet": "entered into on 1 March 2025" },
-      "confidence": 0.94
+      "source": {
+        "page": 1,
+        "snippet": "Date: 11 February 2026",
+        "region": {
+          "x": 0.07771428571428572,
+          "y": 0.10711761057110722,
+          "width": 0.16680154865249083,
+          "height": 0.025872354355907068,
+          "approximate": false
+        }
+      },
+      "confidence": 0.9
     },
     {
-      "label": "Client party",
-      "value": "Al Noor Trading LLC",
+      "label": "First Party",
+      "value": "Digital Horizon Technology Solutions Co.",
       "field_type": "party",
-      "source": { "page": 1, "snippet": "Al Noor Trading LLC (\"Client\")" },
-      "confidence": 0.92
+      "source": {
+        "page": 1,
+        "snippet": "Digital Horizon Technology Solutions Co.",
+        "region": {
+          "x": 0.07771428571428572,
+          "y": 0.28638692626872236,
+          "width": 0.3060227571120461,
+          "height": 0.027504415768503536,
+          "approximate": false
+        }
+      },
+      "confidence": 0.9
     },
     {
-      "label": "Provider party",
-      "value": "Gulf Logistics W.L.L.",
+      "label": "Second Party",
+      "value": "Najd Logistics & Supply Chain Co.",
       "field_type": "party",
-      "source": { "page": 1, "snippet": "Gulf Logistics W.L.L. (\"Provider\")" },
-      "confidence": 0.90
+      "source": {
+        "page": 1,
+        "snippet": "Najd Logistics & Supply Chain Co.",
+        "region": {
+          "x": 0.07771428571428572,
+          "y": 0.3148942212148572,
+          "width": 0.2590235276445851,
+          "height": 0.027504415768503536,
+          "approximate": false
+        }
+      },
+      "confidence": 0.88
     },
     {
-      "label": "Monthly fee",
-      "value": "SAR 48,000",
+      "label": "Contract Value",
+      "value": "SAR 480,000",
       "field_type": "amount",
-      "source": { "page": 1, "snippet": "SAR 48,000 per month" },
-      "confidence": 0.87
+      "source": {
+        "page": 1,
+        "snippet": "SAR 480,000",
+        "region": {
+          "x": 0.3810627955822801,
+          "y": 0.41055698957815123,
+          "width": 0.1059281195161076,
+          "height": 0.026688380531092817,
+          "approximate": false
+        }
+      },
+      "confidence": 0.91
     },
     {
-      "label": "Contract term",
-      "value": "Twelve (12) months",
+      "label": "Confidentiality Clause",
+      "value": "Each party shall keep confidential all proprietary information disclosed during the term and for three years thereafter.",
       "field_type": "clause",
-      "source": { "page": 1, "snippet": "Twelve (12) months from the Effective Date" },
-      "confidence": 0.61
+      "source": {
+        "page": 1,
+        "snippet": "Each party shall keep confidential all proprietary information",
+        "region": {
+          "x": 0.07771428571428572,
+          "y": 0.5376520128796691,
+          "width": 0.16723582550795935,
+          "height": 0.026688380531092817,
+          "approximate": false
+        }
+      },
+      "confidence": 0.82
+    },
+    {
+      "label": "Governing Law",
+      "value": "Laws of the Kingdom of Saudi Arabia; disputes referred to competent courts in Riyadh.",
+      "field_type": "clause",
+      "source": {
+        "page": 1,
+        "snippet": "governed by the laws of the Kingdom of Saudi Arabia",
+        "region": {
+          "x": 0.31382839732820533,
+          "y": 0.5780373473866935,
+          "width": 0.17567225964947178,
+          "height": 0.026688380531092817,
+          "approximate": false
+        }
+      },
+      "confidence": 0.8
     }
   ],
   "notes": [
-    "Contract term clause has lower confidence due to faint print on the scan.",
-    "Prepared sample from a prior live pipeline run for offline demo reliability."
+    "Prepared extraction aligned to 01_Services_Agreement.pdf for offline demo.",
+    "Bilingual layout — verify Arabic clauses during human review."
   ]
 }

@@ -8,28 +8,68 @@
       "label": "Subject",
       "value": "Mandatory Anti-Bribery Training",
       "field_type": "title",
-      "source": { "page": 1, "snippet": "Mandatory Anti-Bribery Training" },
+      "source": {
+        "page": 1,
+        "snippet": "Mandatory Anti-Bribery Training",
+        "region": {
+          "x": 0.04,
+          "y": 0.04,
+          "width": 0.92,
+          "height": 0.06,
+          "approximate": true
+        }
+      },
       "confidence": 0.95
     },
     {
       "label": "Deadline",
       "value": "30 April 2025",
       "field_type": "date",
-      "source": { "page": 1, "snippet": "complete the module by 30 April 2025" },
+      "source": {
+        "page": 1,
+        "snippet": "complete the module by 30 April 2025",
+        "region": {
+          "x": 0.48826391687886644,
+          "y": 0.3946582220262526,
+          "width": 0.023472166242267112,
+          "height": 0.025084837940592724,
+          "approximate": true
+        }
+      },
       "confidence": 0.91
     },
     {
       "label": "Arabic obligation",
       "value": "إكمال البرنامج قبل 30 أبريل 2025",
       "field_type": "clause",
-      "source": { "page": 1, "snippet": "إكمال البرنامج قبل 30 أبريل 2025" },
+      "source": {
+        "page": 1,
+        "snippet": "إكمال البرنامج قبل 30 أبريل 2025",
+        "region": {
+          "x": 0.48826391687886644,
+          "y": 0.3946582220262526,
+          "width": 0.023472166242267112,
+          "height": 0.025084837940592724,
+          "approximate": true
+        }
+      },
       "confidence": 0.83
     },
     {
       "label": "Contact",
       "value": "compliance@example.sa",
       "field_type": "reference",
-      "source": { "page": 1, "snippet": "compliance@example.sa" },
+      "source": {
+        "page": 1,
+        "snippet": "compliance@example.sa",
+        "region": {
+          "x": 0.04,
+          "y": 0.04,
+          "width": 0.92,
+          "height": 0.06,
+          "approximate": true
+        }
+      },
       "confidence": 0.64
     }
   ],

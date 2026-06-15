@@ -5,6 +5,8 @@ openai
 pydantic-settings
 Pillow
 pypdf
+pypdfium2
+PyMuPDF
 pdf2image
 python-docx
 chromadb

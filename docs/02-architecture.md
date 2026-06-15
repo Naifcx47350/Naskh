@@ -51,7 +51,7 @@ User drops file → POST /api/documents/upload
 → return document_id + preview_urls
 ```
 
-**PDF note:** If Poppler is not installed, PDF preview falls back to a text-rendered PNG using `pypdf` extraction. Upload still succeeds; preview is readable but not pixel-perfect.
+**PDF note:** PDF uploads are rasterized to PNG previews with **pypdfium2** (primary) or **PyMuPDF** (fallback). Poppler via `pdf2image` is optional when installed. A shaped Arabic text fallback runs only if all rasterizers fail.
 
 ### 2. Process
 

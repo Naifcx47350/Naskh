@@ -1,10 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, FileWarning, ZoomIn, ZoomOut } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useReducedMotion } from "../hooks/useReducedMotion";
-import { matchFieldBySnippet, snippetVerticalRatio } from "../lib/documentIntel";
+import { matchFieldBySnippet, resolveHighlightRegion } from "../lib/documentIntel";
 import type { DocumentExtraction } from "../types";
+
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 2.5;
 
 export function DocumentViewer({
   previewUrls,
@@ -12,38 +15,47 @@ export function DocumentViewer({
   activeFieldIndex,
   onSnippetClick,
   extraction,
-  contentType,
   filename,
+  textPreviewMode = false,
 }: {
   previewUrls: string[];
   activeSnippet: string | null;
   activeFieldIndex: number | null;
   onSnippetClick?: (fieldIndex: number) => void;
   extraction: DocumentExtraction | null;
-  contentType?: string;
   filename?: string;
+  textPreviewMode?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const [page, setPage] = useState(0);
   const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [altPanning, setAltPanning] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const lastPointer = useRef({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const pageCount = previewUrls.length;
   const currentUrl = previewUrls[page] ?? null;
 
-  const isTextPdfPreview = contentType === "application/pdf";
+  const highlightRegion = useMemo(
+    () => resolveHighlightRegion(extraction, activeFieldIndex, activeSnippet, page),
+    [extraction, activeFieldIndex, activeSnippet, page],
+  );
 
-  const highlightRatio = useMemo(() => {
-    if (!activeSnippet || !extraction) return null;
-    const field =
-      activeFieldIndex != null ? extraction.fields[activeFieldIndex] : null;
-    const snippet = field?.source.snippet ?? activeSnippet;
-    return snippetVerticalRatio(extraction.transcription, snippet);
+  const displaySnippet = useMemo(() => {
+    if (!activeSnippet || !extraction) return activeSnippet;
+    if (activeFieldIndex != null) return extraction.fields[activeFieldIndex]?.source.snippet ?? activeSnippet;
+    const index = matchFieldBySnippet(extraction.fields, activeSnippet);
+    return index != null ? extraction.fields[index].source.snippet : activeSnippet;
   }, [activeSnippet, activeFieldIndex, extraction]);
 
   useEffect(() => {
     setPage(0);
     setScale(1);
+    setPan({ x: 0, y: 0 });
   }, [previewUrls]);
 
   useEffect(() => {
@@ -53,23 +65,91 @@ export function DocumentViewer({
     }
   }, [activeFieldIndex, extraction, pageCount]);
 
+  const scrollHighlightIntoView = useCallback(() => {
+    if (!highlightRegion || !viewportRef.current || !imageRef.current) return;
+    const viewport = viewportRef.current;
+    const img = imageRef.current;
+    const targetX = (highlightRegion.x + highlightRegion.width / 2) * img.clientWidth * scale + pan.x;
+    const targetY = (highlightRegion.y + highlightRegion.height / 2) * img.clientHeight * scale + pan.y;
+    viewport.scrollTo({
+      left: Math.max(0, targetX - viewport.clientWidth / 2),
+      top: Math.max(0, targetY - viewport.clientHeight / 2),
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+  }, [highlightRegion, pan.x, pan.y, reducedMotion, scale]);
+
   useEffect(() => {
     if (!activeSnippet) return;
-    if (scale < 1.05) setScale(1.2);
-    const viewport = viewportRef.current;
-    if (!viewport || highlightRatio == null) return;
-    const targetTop = Math.max(0, highlightRatio * viewport.scrollHeight - viewport.clientHeight / 2);
-    viewport.scrollTo({ top: targetTop, behavior: reducedMotion ? "auto" : "smooth" });
-  }, [activeSnippet, highlightRatio, reducedMotion, scale]);
+    if (scale < 1.05) setScale(1.15);
+    scrollHighlightIntoView();
+  }, [activeSnippet, highlightRegion, page, scrollHighlightIntoView]);
 
-  function zoom(delta: number) {
-    setScale((value) => Math.min(2.5, Math.max(0.5, Math.round((value + delta) * 10) / 10)));
+  function clampScale(value: number) {
+    return Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round(value * 10) / 10));
   }
 
-  const highlightStyle =
-    highlightRatio != null
-      ? { top: `${Math.max(8, highlightRatio * 100 - 6)}%`, height: "12%" }
-      : { top: "35%", height: "18%" };
+  function zoom(delta: number, clientX?: number, clientY?: number) {
+    setScale((current) => {
+      const next = clampScale(current + delta);
+      const viewport = viewportRef.current;
+      if (!viewport || clientX == null || clientY == null) return next;
+      const rect = viewport.getBoundingClientRect();
+      const px = clientX - rect.left + viewport.scrollLeft;
+      const py = clientY - rect.top + viewport.scrollTop;
+      const ratio = next / current;
+      setPan((p) => ({
+        x: px - (px - p.x) * ratio,
+        y: py - (py - p.y) * ratio,
+      }));
+      return next;
+    });
+  }
+
+  function onWheel(event: React.WheelEvent) {
+    if (!event.altKey) return;
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.12 : -0.12;
+    zoom(delta, event.clientX, event.clientY);
+  }
+
+  function onPointerDown(event: React.PointerEvent) {
+    if (scale <= 1 && !event.altKey) return;
+    setDragging(true);
+    dragStart.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event: React.PointerEvent) {
+    lastPointer.current = { x: event.clientX, y: event.clientY };
+    if (event.altKey && scale > 1 && !dragging) {
+      setAltPanning(true);
+      setPan((p) => ({
+        x: p.x - event.movementX,
+        y: p.y - event.movementY,
+      }));
+      return;
+    }
+    if (!dragging) return;
+    setPan({
+      x: dragStart.current.panX + (event.clientX - dragStart.current.x),
+      y: dragStart.current.panY + (event.clientY - dragStart.current.y),
+    });
+  }
+
+  function onPointerUp(event: React.PointerEvent) {
+    setDragging(false);
+    setAltPanning(false);
+    (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+  }
+
+  const highlightStyle = highlightRegion
+    ? {
+        left: `${highlightRegion.x * 100}%`,
+        top: `${highlightRegion.y * 100}%`,
+        width: `${highlightRegion.width * 100}%`,
+        height: `${highlightRegion.height * 100}%`,
+      }
+    : undefined;
 
   return (
     <div className="naskh-viewer">
@@ -77,10 +157,13 @@ export function DocumentViewer({
         <div className="naskh-viewer-info">
           <span className="naskh-info-chip">{filename ?? "Document"}</span>
           {pageCount > 0 && <span className="naskh-info-chip">Page {page + 1} / {pageCount}</span>}
-          {isTextPdfPreview && (
+          {textPreviewMode && (
             <span className="naskh-info-chip naskh-info-chip-warn">
               <FileWarning size={12} /> Text preview mode
             </span>
+          )}
+          {scale > 1 && (
+            <span className="naskh-info-chip">Drag to pan · Alt+wheel to zoom</span>
           )}
         </div>
         <div className="naskh-viewer-controls">
@@ -104,62 +187,68 @@ export function DocumentViewer({
         </div>
       </div>
 
-      <div ref={viewportRef} className="naskh-viewer-viewport">
+      <div
+        ref={viewportRef}
+        className={`naskh-viewer-viewport ${dragging || altPanning ? "naskh-viewer-viewport-grabbing" : "naskh-viewer-viewport-grabbable"}`}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+      >
         {currentUrl ? (
-          <motion.div
-            className="naskh-viewer-canvas"
-            animate={{ scale }}
-            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 280, damping: 30 }}
+          <div
+            className="naskh-viewer-transform"
+            style={{
+              transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+              transformOrigin: "0 0",
+              transition: reducedMotion || dragging || altPanning ? "none" : "transform 0.15s ease-out",
+            }}
           >
-            <img
-              src={currentUrl}
-              alt={`Document page ${page + 1}`}
-              className={`naskh-viewer-image ${activeSnippet ? "naskh-viewer-image-active" : ""}`}
-              draggable={false}
-            />
-            <AnimatePresence>
-              {activeSnippet && (
-                <motion.button
-                  type="button"
-                  key={activeSnippet}
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.35 }}
-                  className="naskh-viewer-highlight naskh-viewer-highlight-positioned"
-                  style={highlightStyle}
-                  onClick={() => {
-                    if (!extraction) return;
-                    const index = matchFieldBySnippet(extraction.fields, activeSnippet);
-                    if (index != null) onSnippetClick?.(index);
-                  }}
-                  aria-label="Jump to related field"
-                >
-                  <span className="naskh-viewer-highlight-pulse" />
-                  <span className="naskh-viewer-highlight-label">Cited region</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            <div className="naskh-viewer-page">
+              <img
+                ref={imageRef}
+                src={currentUrl}
+                alt={`Document page ${page + 1}`}
+                className={`naskh-viewer-image ${activeSnippet ? "naskh-viewer-image-active" : ""}`}
+                draggable={false}
+              />
+              <AnimatePresence>
+                {activeSnippet && highlightStyle && (
+                  <motion.button
+                    type="button"
+                    key={`${page}-${displaySnippet}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.25 }}
+                    className={`naskh-viewer-highlight naskh-viewer-highlight-positioned ${highlightRegion?.approximate ? "naskh-viewer-highlight-approx" : ""}`}
+                    style={highlightStyle}
+                    onClick={() => {
+                      if (!extraction) return;
+                      const index = matchFieldBySnippet(extraction.fields, activeSnippet);
+                      if (index != null) onSnippetClick?.(index);
+                    }}
+                    aria-label="Jump to related field"
+                  >
+                    <span className="naskh-viewer-highlight-pulse" />
+                    <span className="naskh-viewer-highlight-label">
+                      {highlightRegion?.approximate ? "Approx. source" : "Cited region"}
+                    </span>
+                    {displaySnippet && (
+                      <span className="naskh-viewer-passage-overlay" dir="auto">
+                        {displaySnippet}
+                      </span>
+                    )}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
         ) : (
           <div className="naskh-viewer-empty">No preview available</div>
         )}
       </div>
-
-      <AnimatePresence>
-        {activeSnippet && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: reducedMotion ? 0 : 0.3 }}
-            className="naskh-viewer-snippet"
-          >
-            <p className="naskh-viewer-snippet-label">Cited passage</p>
-            <p dir="auto">{activeSnippet}</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

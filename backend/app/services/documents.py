@@ -6,13 +6,12 @@ import uuid
 from pathlib import Path
 
 from fastapi import UploadFile
-from pdf2image import convert_from_bytes
 from PIL import Image, ImageDraw, ImageOps
-from pypdf import PdfReader
 
 from app.config import get_settings
 from app.schemas import DocumentExtraction
 from app.services.arabic_text import load_arabic_font, shape_arabic
+from app.services.pdf_preview import PreviewMode, rasterize_pdf
 
 
 SUPPORTED_IMAGE_TYPES = {"image/png", "image/jpeg", "image/webp"}
@@ -27,12 +26,14 @@ class StoredDocument:
         content_type: str,
         original_path: Path,
         preview_paths: list[Path],
+        preview_mode: PreviewMode = "raster",
     ) -> None:
         self.document_id = document_id
         self.filename = filename
         self.content_type = content_type
         self.original_path = original_path
         self.preview_paths = preview_paths
+        self.preview_mode = preview_mode
 
 
 def _safe_suffix(filename: str, content_type: str) -> str:
@@ -44,55 +45,30 @@ def _safe_suffix(filename: str, content_type: str) -> str:
 
 def _normalise_image(image: Image.Image) -> Image.Image:
     image = ImageOps.exif_transpose(image).convert("RGB")
-    image.thumbnail((1800, 2400))
+    image.thumbnail((1800, 2400), Image.Resampling.LANCZOS)
     return image
 
 
-def _write_preview(image: Image.Image, destination: Path) -> None:
+def _normalise_raster(image: Image.Image) -> Image.Image:
+    image = image.convert("RGB")
+    image.thumbnail((2400, 2400), Image.Resampling.LANCZOS)
+    return image
+
+
+def _write_preview(image: Image.Image, destination: Path, *, raster: bool = False) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    _normalise_image(image).save(destination, format="PNG", optimize=True)
+    normalised = _normalise_raster(image) if raster else _normalise_image(image)
+    normalised.save(destination, format="PNG", optimize=True)
 
 
-def _wrap_text(text: str, width: int = 58) -> list[str]:
-    words = text.split()
-    lines: list[str] = []
-    current: list[str] = []
-    for word in words:
-        candidate = " ".join([*current, word])
-        if len(candidate) <= width:
-            current.append(word)
-        else:
-            if current:
-                lines.append(" ".join(current))
-            current = [word]
-    if current:
-        lines.append(" ".join(current))
-    return lines or [text[:width]]
-
-
-def _draw_preview_line(draw: ImageDraw.ImageDraw, x: int, y: int, line: str, font) -> None:
-    if any("\u0600" <= char <= "\u06FF" for char in line):
-        draw.text((x, y), shape_arabic(line), font=font, fill=(23, 32, 51), anchor="ra")
-    else:
-        draw.text((x, y), line, font=font, fill=(23, 32, 51))
-
-
-def _pdf_text_preview(pdf_path: Path, destination: Path) -> None:
-    reader = PdfReader(str(pdf_path))
-    extracted = "\n\n".join((page.extract_text() or "").strip() for page in reader.pages[:2]).strip()
-    if not extracted:
-        extracted = "PDF uploaded successfully. Install Poppler for pixel-perfect previews, or upload a PNG/JPEG photo for the live demo."
-
-    image = Image.new("RGB", (900, 1200), color=(251, 247, 239))
-    draw = ImageDraw.Draw(image)
-    font = load_arabic_font(24)
-    draw.rectangle((36, 36, 864, 1164), outline=(183, 114, 69), width=3)
-    draw.text((56, 56), "Naskh PDF preview", fill=(23, 32, 51))
-    y = 110
-    for line in _wrap_text(extracted, width=72)[:28]:
-        _draw_preview_line(draw, 844, y, line, font)
-        y += 34
-    _write_preview(image, destination)
+def _build_pdf_previews(pdf_path: Path, preview_dir: Path) -> tuple[list[Path], PreviewMode]:
+    page_images, mode, _renderer = rasterize_pdf(pdf_path)
+    preview_paths: list[Path] = []
+    for index, page_image in enumerate(page_images, start=1):
+        preview_path = preview_dir / f"page-{index}.png"
+        _write_preview(page_image, preview_path, raster=(mode == "raster"))
+        preview_paths.append(preview_path)
+    return preview_paths, mode
 
 
 async def store_upload(file: UploadFile) -> StoredDocument:
@@ -109,6 +85,7 @@ async def store_upload(file: UploadFile) -> StoredDocument:
 
     preview_dir = settings.data_dir / "previews" / document_id
     preview_paths: list[Path] = []
+    preview_mode: PreviewMode = "raster"
 
     if file.content_type in SUPPORTED_IMAGE_TYPES:
         with Image.open(original_path) as image:
@@ -116,17 +93,7 @@ async def store_upload(file: UploadFile) -> StoredDocument:
             _write_preview(image, preview_path)
             preview_paths.append(preview_path)
     else:
-        pdf_bytes = original_path.read_bytes()
-        try:
-            pages = convert_from_bytes(pdf_bytes, dpi=180, fmt="png")
-            for index, page in enumerate(pages[:5], start=1):
-                preview_path = preview_dir / f"page-{index}.png"
-                _write_preview(page, preview_path)
-                preview_paths.append(preview_path)
-        except Exception:
-            preview_path = preview_dir / "page-1.png"
-            _pdf_text_preview(original_path, preview_path)
-            preview_paths.append(preview_path)
+        preview_paths, preview_mode = _build_pdf_previews(original_path, preview_dir)
 
     write_metadata(
         document_id,
@@ -136,6 +103,7 @@ async def store_upload(file: UploadFile) -> StoredDocument:
             "content_type": file.content_type,
             "original_path": str(original_path),
             "preview_paths": [str(path) for path in preview_paths],
+            "preview_mode": preview_mode,
         },
     )
 
@@ -145,6 +113,7 @@ async def store_upload(file: UploadFile) -> StoredDocument:
         content_type=file.content_type or "application/octet-stream",
         original_path=original_path,
         preview_paths=preview_paths,
+        preview_mode=preview_mode,
     )
 
 
@@ -180,6 +149,7 @@ def load_document(document_id: str) -> StoredDocument:
         content_type=metadata["content_type"],
         original_path=Path(metadata["original_path"]),
         preview_paths=[Path(path) for path in metadata["preview_paths"]],
+        preview_mode=metadata.get("preview_mode", "raster"),
     )
 
 
@@ -232,6 +202,7 @@ def create_demo_document() -> StoredDocument:
             "content_type": "image/png",
             "original_path": str(original_path),
             "preview_paths": [str(preview_path)],
+            "preview_mode": "raster",
         },
     )
 
@@ -241,6 +212,7 @@ def create_demo_document() -> StoredDocument:
         content_type="image/png",
         original_path=original_path,
         preview_paths=[preview_path],
+        preview_mode="raster",
     )
 
 

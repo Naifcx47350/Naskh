@@ -7,7 +7,7 @@ Last updated after the **final polish & wow pass** (sample gallery, citation hig
 | Area | Status | Notes |
 | --- | --- | --- |
 | File upload (PDF, PNG, JPEG, WebP) | Done | Stored under `backend/data/uploads/` |
-| PDF/image preview generation | Done | Poppler path + pypdf fallback |
+| PDF/image preview generation | Done | pypdfium2 rasterization (Poppler optional); shaped text fallback only if rasterizers fail |
 | **Sample gallery (5 docs)** | Done | `backend/samples/` — offline prepared extractions + thumbnails |
 | Demo sample shortcut | Done | `POST /api/documents/demo` loads `saudi-regulatory-circular` |
 | Vision extraction (OpenAI) | Done | Pydantic `DocumentExtraction` schema |
@@ -85,8 +85,8 @@ Live OpenAI integration tests are **not** included (would require key + cost). G
 
 1. **Handwriting quality** — Vision model first pass; operator must review Arabic transcription and low-confidence fields.
 2. **Highlight positioning** — Citation regions are approximated by matching snippet text in transcription/page context, not pixel-perfect OCR boxes.
-3. **PDF without Poppler** — Preview may be synthesized from extracted text, not a true rasterized page.
-4. **Session persistence only** — Documents live in local `backend/data/`; clearing data deletes work. PATCH updates persist to disk for the current document id.
+3. **PDF preview fallback** — If all rasterizers fail, a shaped Arabic text preview is shown with a “Text preview mode” badge (rare; normal path is faithful page raster).
+4. **No persistence across sessions** — Documents live in local `backend/data/`; clearing data deletes work. PATCH updates persist to disk for the current document id.
 5. **No auth** — Anyone with network access to the server can upload/process.
 6. **Chat without API key** — Gallery and exports work offline; assistant chat is disabled with an honest message.
 7. **Prepared extractions** — Gallery samples use curated JSON; live upload quality may differ.

@@ -130,7 +130,7 @@ def test_demo_document_loads_prepared_extraction(tmp_path, monkeypatch) -> None:
     response = client.post("/api/documents/demo")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["extraction"]["language"] == "Arabic"
+    assert payload["extraction"]["language"] in {"Arabic", "Arabic/English"}
     assert payload["extraction"]["fields"]
 
 
@@ -153,8 +153,10 @@ def test_load_gallery_sample(tmp_path, monkeypatch) -> None:
 
     document, extraction = load_sample_document("commercial-agreement")
     assert document.preview_paths[0].exists()
-    assert extraction.document_kind == "Commercial services agreement"
-    assert len(extraction.fields) >= 4
+    assert document.content_type == "application/pdf"
+    assert extraction.document_kind == "Professional Services Agreement"
+    assert extraction.fields[0].source.region is not None
+    assert extraction.fields[0].source.region.x > 0.5
 
 
 def test_resolve_citation_sources_maps_to_field_snippet() -> None:
@@ -173,3 +175,58 @@ def test_write_csv_export(tmp_path, monkeypatch) -> None:
     path = write_csv("demo", extraction)
     assert path.exists()
     assert "field,value,field_type" in path.read_text(encoding="utf-8-sig").splitlines()[0]
+
+
+def test_store_upload_rasterizes_pdf_preview(tmp_path, monkeypatch) -> None:
+    from pypdf import PdfWriter
+
+    for folder in ["uploads", "previews", "exports", "chroma"]:
+        (tmp_path / folder).mkdir()
+
+    monkeypatch.setattr(
+        "app.services.documents.get_settings",
+        lambda: SimpleNamespace(data_dir=tmp_path),
+    )
+
+    pdf_path = tmp_path / "sample.pdf"
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    with pdf_path.open("wb") as handle:
+        writer.write(handle)
+
+    pdf_buffer = io.BytesIO(pdf_path.read_bytes())
+    upload = UploadFile(
+        file=pdf_buffer,
+        filename="sample.pdf",
+        headers=Headers({"content-type": "application/pdf"}),
+    )
+    stored = asyncio.run(store_upload(upload))
+
+    assert stored.preview_mode == "raster"
+    assert stored.preview_paths
+    assert stored.preview_paths[0].exists()
+    with Image.open(stored.preview_paths[0]) as preview:
+        assert preview.width >= 400
+        assert preview.height >= 400
+
+
+def test_locate_snippet_on_services_agreement_pdf() -> None:
+    from app.services.pdf_layout import locate_snippet_in_pdf
+    from app.services.pdf_preview import rasterize_pdf
+
+    pdf_path = Path(__file__).resolve().parents[3] / "data" / "samples" / "01_Services_Agreement.pdf"
+    if not pdf_path.exists():
+        return
+
+    region = locate_snippet_in_pdf(pdf_path, 1, "DH-AGR-2026-0184", value="DH-AGR-2026-0184")
+    assert region is not None
+    assert region.x > 0.55
+    assert region.y < 0.2
+    assert not region.approximate
+
+    pages, mode, renderer = rasterize_pdf(pdf_path)
+    assert mode == "raster"
+    assert renderer == "pypdfium2"
+    assert len(pages) >= 1
+    assert pages[0].width >= 800
+    assert pages[0].height >= 800

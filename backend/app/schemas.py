@@ -1,9 +1,18 @@
 from pydantic import BaseModel, Field
 
 
+class NormalizedRegion(BaseModel):
+    x: float = Field(ge=0, le=1, description="Left edge as fraction of page width.")
+    y: float = Field(ge=0, le=1, description="Top edge as fraction of page height.")
+    width: float = Field(gt=0, le=1)
+    height: float = Field(gt=0, le=1)
+    approximate: bool = False
+
+
 class SourceRegion(BaseModel):
     page: int = Field(description="One-based page number where the source appears.")
     snippet: str = Field(description="Exact text snippet from the source document.")
+    region: NormalizedRegion | None = None
 
 
 class ExtractedField(BaseModel):
@@ -39,6 +48,7 @@ class UploadResponse(BaseModel):
     filename: str
     content_type: str
     preview_urls: list[str]
+    preview_mode: str = "raster"
     extraction: DocumentExtraction | None = None
 
 

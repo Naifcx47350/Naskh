@@ -5,7 +5,7 @@
 - **FastAPI** on **Uvicorn**
 - **OpenAI Python SDK** (Responses API + `.parse()` for Pydantic outputs)
 - **ChromaDB** for per-document vector index
-- **Pillow**, **pypdf**, **pdf2image** for document handling
+- **Pillow**, **pypdf**, **pypdfium2**, **PyMuPDF**, **pdf2image** (optional) for document handling
 - **python-docx** for exports
 
 ## File structure
@@ -19,6 +19,7 @@ backend/
 │   ├── schemas.py           # Pydantic models (shared contract)
 │   └── services/
 │       ├── documents.py     # Upload, preview, metadata, demo
+│       ├── pdf_preview.py   # PDF rasterization (pypdfium2 / PyMuPDF / Poppler)
 │       ├── ai.py            # OpenAI extraction + chat
 │       ├── rag.py           # Chunk, embed, retrieve
 │       └── exports.py       # DOCX + JSON writers
@@ -59,7 +60,8 @@ Data directories are created automatically under `backend/data/`.
 - Stores original file + writes JSON metadata (`document_id`, paths, timestamps)
 - Generates PNG previews:
   - Images → normalize with Pillow
-  - PDF → `pdf2image` if Poppler available, else `pypdf` text + Pillow render
+  - PDF → rasterize every page with `pypdfium2` (primary), `PyMuPDF`, or `pdf2image` if Poppler is present; last-resort shaped Arabic text pages if all rasterizers fail
+  - Metadata includes `preview_mode`: `raster` or `text`
 - `create_demo_document()` — copies bundled sample into uploads
 - `load_sample_extraction()` — demo JSON for no-key mode
 

@@ -155,3 +155,59 @@ No browser E2E automation; manual gauntlet documented in [10-demo-playbook.md](.
 3. **Stretch features deferred** — multi-document compare, regulatory diff, one-page brief export (pick one in a future sprint if needed).
 4. **CI / E2E** — add Playwright smoke test for gallery load + highlight focus when bandwidth allows.
 5. **Integration tests** — optional `pytest -m integration` against live OpenAI for regression on extraction schema.
+
+---
+
+# PDF preview rasterization fix
+
+## Problem
+
+Without Poppler, PDF uploads used `pypdf` text extraction + Pillow re-typesetting. Arabic broke (tofu boxes, collapsed bilingual layout, vertical text), and content was lost. The UI showed “Text preview mode” for every PDF.
+
+## Solution
+
+New module `backend/app/services/pdf_preview.py`:
+
+| Priority | Renderer | Notes |
+| --- | --- | --- |
+| 1 | **pypdfium2** | Primary — PDFium, pip wheels, no system deps, ~144 DPI at scale 2.0 |
+| 2 | **PyMuPDF** | Fallback — `fitz.Matrix(2, 2)` |
+| 3 | **pdf2image** | Optional when Poppler is on PATH |
+| 4 | **Text fallback** | Shaped Arabic via `arabic_text.py`, Noto Naskh font, RTL alignment, line wrap + multi-page pagination |
+
+- Every PDF page renders to its own `page-N.png` for viewer pagination.
+- Metadata field `preview_mode`: `raster` (normal) or `text` (last resort).
+- Frontend shows “Text preview mode” badge **only** when `preview_mode === "text"`.
+- `DocumentViewer` uses `object-fit: contain` for undistorted crisp display.
+
+## Dependencies added
+
+`pypdfium2`, `PyMuPDF` in `backend/requirements.txt`.
+
+---
+
+# UI/UX refinements pass
+
+## Layout width
+
+Main container widened to `min(1600px, 94vw)` — split view uses full desktop width.
+
+## Assistant overlay + circular FAB
+
+Removed `naskh-container-assistant-open` content reflow. Replaced pill trigger with 56px Bot FAB; panel overlays at `z-index: 80` with close (×) on header. **Ctrl+K** opens/focuses assistant (Alt+1 blocked by browsers).
+
+## Accurate PDF highlights
+
+New `backend/app/services/pdf_layout.py` — PyMuPDF text search → normalized `source.region` on each field. Enriched on sample load and after PDF process. Reference Number on `01_Services_Agreement.pdf` lands top-right (~x 0.67).
+
+## Cited passage on preview
+
+Snippet text floats on the highlight overlay; removed separate block below viewer.
+
+## Interactive zoom/pan
+
+Alt+wheel zoom at cursor; drag or Alt+mousemove to pan when zoomed. This avoids Chrome's native Ctrl+wheel page zoom conflict.
+
+## Sample gallery
+
+Moved below upload zone; compact hover-expand strip. Samples load real PDFs from `data/samples/` with prepared extractions (`manifest.json` → `pdf_file`).
