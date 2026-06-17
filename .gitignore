@@ -1,5 +1,6 @@
 .env
 .vscode
+.cursorignore
 data
 node_modules
 dist
